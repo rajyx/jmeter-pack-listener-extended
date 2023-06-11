@@ -3,22 +3,21 @@ package ru.loadtest.listeners.clickhouse;
 import cloud.testload.jmeter.ClickHouseBackendListenerClientV2;
 import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.visualizers.backend.BackendListenerContext;
+import ru.loadtest.listeners.clickhouse.adapter.ClickHouseAdapterImpl;
+import ru.loadtest.listeners.clickhouse.adapter.ClickHouseDBAdapter;
 import ru.loadtest.listeners.clickhouse.config.ClickHouseConfigV3;
 import ru.loadtest.listeners.clickhouse.config.ClickHousePluginGUIKeys;
-import ru.yandex.clickhouse.ClickHouseDataSource;
 import ru.yandex.clickhouse.settings.ClickHouseProperties;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class ClickHouseBackendListenerClientV3 extends ClickHouseBackendListenerClientV2 {
-    protected Connection connection;
     protected ClickHouseConfigV3 clickHouseConfig;
 
-    protected ClickHouseDataSource clickHouseDataSource;
+    protected ClickHouseDBAdapter clickHouseDBAdapter;
 
     @Override
     public Arguments getDefaultParameters() {
@@ -32,8 +31,14 @@ public class ClickHouseBackendListenerClientV3 extends ClickHouseBackendListener
     @Override
     public void setupTest(BackendListenerContext context) throws Exception {
         clickHouseConfig = new ClickHouseConfigV3(context);
-        setupClickHouseClient();
-        createDatabaseIfNotExistent(); // Error in this row
+        setupClickHouseAdapter();
+        if (
+                Boolean.parseBoolean(
+                        clickHouseConfig.getParameters().get(ClickHousePluginGUIKeys.CREATE_DEFINITIONS.getStringKey())
+                )
+        ) {
+            clickHouseDBAdapter.createDatabaseIfNotExists();
+        }
         setupClickHouseClient(context);
         parseSamplers(context);
         scheduler = Executors.newScheduledThreadPool(1);
@@ -42,7 +47,7 @@ public class ClickHouseBackendListenerClientV3 extends ClickHouseBackendListener
         recordSubSamples = Boolean.parseBoolean(context.getParameter(KEY_RECORD_SUB_SAMPLES, "false"));
     }
 
-    protected void setupClickHouseClient() {
+    protected void setupClickHouseAdapter() {
         Map<String, String> configParameters = clickHouseConfig.getParameters();
         ClickHouseProperties properties = new ClickHouseProperties();
         properties.setCompress(true);
@@ -51,15 +56,7 @@ public class ClickHouseBackendListenerClientV3 extends ClickHouseBackendListener
         properties.setPassword(configParameters.get(ClickHousePluginGUIKeys.PASSWORD.getStringKey()));
         properties.setConnectionTimeout(Integer.parseInt(configParameters.get(ClickHousePluginGUIKeys.CONNECT_TIMEOUT.getStringKey())));
         properties.setSocketTimeout(Integer.parseInt(configParameters.get(ClickHousePluginGUIKeys.CONNECT_TIMEOUT.getStringKey())));
-        clickHouseDataSource = new ClickHouseDataSource(
-                "jdbc:clickhouse://" +
-                        configParameters.get(ClickHousePluginGUIKeys.URL.getStringKey()),
-                properties
-        );
-        try {
-            connection = clickHouseDataSource.getConnection();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        clickHouseDBAdapter = new ClickHouseAdapterImpl(configParameters.get(ClickHousePluginGUIKeys.URL.getStringKey()));
+        clickHouseDBAdapter.prepareConnection(properties);
     }
 }

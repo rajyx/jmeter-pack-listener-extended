@@ -5,7 +5,6 @@ import org.apache.jmeter.visualizers.backend.BackendListenerContext;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class ClickHouseConfigV3 {
     private Map<String, String> parameters;
