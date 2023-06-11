@@ -26,6 +26,8 @@
         <maven.compiler.target>17</maven.compiler.target>
         <jmeter.pack-listener.version>2.07</jmeter.pack-listener.version>
         <junit.version>3.8.1</junit.version>
+        <org.apache.jmeter.version>5.1</org.apache.jmeter.version>
+        <org.apache.commons>3.7</org.apache.commons>
     </properties>
 
     <dependencies>
@@ -39,6 +41,41 @@
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.jmeter</groupId>
+            <artifactId>ApacheJMeter_config</artifactId>
+            <version>${org.apache.jmeter.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.jmeter</groupId>
+            <artifactId>ApacheJMeter_core</artifactId>
+            <version>${org.apache.jmeter.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.jmeter</groupId>
+            <artifactId>ApacheJMeter_components</artifactId>
+            <version>${org.apache.jmeter.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.jmeter</groupId>
+            <artifactId>jorphan</artifactId>
+            <version>${org.apache.jmeter.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${org.apache.commons}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
