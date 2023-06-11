@@ -76,10 +76,10 @@ public class ClickHouseBackendListenerClientV3 extends ClickHouseBackendListener
                 .setFilterRegex(samplersList)
                 .setSamplersToStore(
                         useRegexToSamplersFilter
-                                ? Arrays.stream(
+                                ? null
+                                : Arrays.stream(
                                 samplersList.split(SAMPLERS_SEPARATOR)
                         ).collect(Collectors.toSet())
-                                : null
                 );
     }
 }

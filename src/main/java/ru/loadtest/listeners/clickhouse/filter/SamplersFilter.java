@@ -1,6 +1,6 @@
 package ru.loadtest.listeners.clickhouse.filter;
 
-import org.apache.jmeter.samplers.Sampler;
+import org.apache.jmeter.samplers.SampleResult;
 
 import java.util.Set;
 
@@ -19,7 +19,11 @@ public class SamplersFilter implements ISamplersFilter {
     }
 
     @Override
-    public boolean isSamplerForbidden(Sampler sampler) {
-        return false;
+    public boolean isSamplerForbidden(SampleResult sampler) {
+        String samplerLabel = sampler.getSampleLabel();
+        if (samplersToStore != null) {
+            return samplersToStore.contains(samplerLabel);
+        }
+        return samplerLabel.matches(filterRegex);
     }
 }
