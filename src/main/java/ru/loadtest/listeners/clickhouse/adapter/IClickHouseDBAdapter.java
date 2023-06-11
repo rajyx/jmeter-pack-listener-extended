@@ -2,7 +2,7 @@ package ru.loadtest.listeners.clickhouse.adapter;
 
 import ru.yandex.clickhouse.settings.ClickHouseProperties;
 
-public interface ClickHouseDBAdapter {
+public interface IClickHouseDBAdapter {
 
     void prepareConnection(ClickHouseProperties properties);
 

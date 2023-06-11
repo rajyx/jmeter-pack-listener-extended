@@ -7,12 +7,12 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-public class ClickHouseAdapterImpl implements ClickHouseDBAdapter {
+public class ClickHouseAdapter implements IClickHouseDBAdapter {
     private ClickHouseDataSource dataSource;
     private Connection connection;
     private String dbName;
 
-    public ClickHouseAdapterImpl(String dbName) {
+    public ClickHouseAdapter(String dbName) {
         this.dbName = dbName;
     }
 
