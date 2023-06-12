@@ -37,6 +37,11 @@ public class SamplersBuffer implements ISamplersBuffer {
         );
     }
 
+    @Override
+    public List<SampleResult> getSampleResults() {
+        return allSampleResults;
+    }
+
     protected void cleanSampleData(SampleResult sampleResult) {
         switch (recordDataLevel) {
             case "aggregate":

@@ -82,6 +82,18 @@ public class ClickHouseBackendListenerClientV3 extends ClickHouseBackendListener
     @Override
     public void handleSampleResults(List<SampleResult> sampleResults, BackendListenerContext context) {
         samplersBuffer.addSamplers(sampleResults);
+        Map<String, String> configParameters = clickHouseConfig.getParameters();
+        String recordDataLevel = configParameters.get(ClickHousePluginGUIKeys.RECORD_DATA_LEVEL.getStringKey());
+        int groupByCount = Integer.parseInt(configParameters.get(ClickHousePluginGUIKeys.GROUP_BY_COUNT.getStringKey()));
+        int batchSize = Integer.parseInt(configParameters.get(ClickHousePluginGUIKeys.BATCH_SIZE.getStringKey()));
+        if (
+                recordDataLevel.equals("aggregate")
+                        && samplersBuffer.getSampleResults().size() >= groupByCount * batchSize
+        ) {
+            clickHouseDBAdapter.flushBatchPoints(samplersBuffer.getSampleResults(), clickHouseConfig);
+        } else if (samplersBuffer.getSampleResults().size() >= batchSize) {
+            clickHouseDBAdapter.flushBatchPoints(samplersBuffer.getSampleResults(), clickHouseConfig);
+        }
     }
 
     private void setupClickHouseAdapter() {

@@ -91,6 +91,8 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
                 point.setString(11, sampleResult.getSamplerData());
                 point.setString(12, sampleResult.getResponseDataAsString());
             }
+            point.executeBatch();
+            sampleResultList.clear();
         } catch (SQLException | UnknownHostException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
