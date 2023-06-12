@@ -1,5 +1,6 @@
 package ru.loadtest.listeners.clickhouse.adapter;
 
+import org.apache.jmeter.samplers.SampleResult;
 import ru.yandex.clickhouse.ClickHouseDataSource;
 import ru.yandex.clickhouse.settings.ClickHouseProperties;
 
@@ -22,27 +23,39 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
                 "jdbc:clickhouse://" + dbName,
                 properties
         );
-        try {
-            connection = dataSource.getConnection();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        catchConnectionExceptions(
+                () -> connection = dataSource.getConnection()
+        );
     }
 
     @Override
     public void createDatabaseIfNotExists() {
+        catchConnectionExceptions(
+                () -> {
+                    for (String query : List.of(
+                            "create database IF NOT EXISTS " + dbName,
+                            getQueryToCreateDataTable(),
+                            getQueryToCreateStatView(),
+                            getQueryToCreateBufferTable()
+                    )) {
+                        connection.createStatement().execute(query);
+                    }
+                }
+        );
+    }
+
+    private void catchConnectionExceptions(SQLFunction connectionFunction) {
         try {
-            for (String query : List.of(
-                    "create database IF NOT EXISTS " + dbName,
-                    getQueryToCreateDataTable(),
-                    getQueryToCreateStatView(),
-                    getQueryToCreateBufferTable()
-            )) {
-                this.connection.createStatement().execute(query);
-            }
+            connectionFunction.accept();
         } catch (SQLException e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void flushBatchPoints(List<SampleResult> sampleResultList) {
+
     }
 
     private String getQueryToCreateDataTable() {

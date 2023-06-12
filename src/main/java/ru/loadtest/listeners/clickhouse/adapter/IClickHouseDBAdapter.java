@@ -1,10 +1,15 @@
 package ru.loadtest.listeners.clickhouse.adapter;
 
+import org.apache.jmeter.samplers.SampleResult;
 import ru.yandex.clickhouse.settings.ClickHouseProperties;
+
+import java.util.List;
 
 public interface IClickHouseDBAdapter {
 
     void prepareConnection(ClickHouseProperties properties);
 
     void createDatabaseIfNotExists();
+
+    void flushBatchPoints(List<SampleResult> sampleResultList);
 }
