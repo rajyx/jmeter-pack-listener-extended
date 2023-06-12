@@ -2,6 +2,7 @@ package ru.loadtest.listeners.clickhouse;
 
 import cloud.testload.jmeter.ClickHouseBackendListenerClientV2;
 import org.apache.jmeter.config.Arguments;
+import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.visualizers.backend.BackendListenerContext;
 import ru.loadtest.listeners.clickhouse.adapter.ClickHouseAdapter;
 import ru.loadtest.listeners.clickhouse.adapter.IClickHouseDBAdapter;
@@ -9,11 +10,15 @@ import ru.loadtest.listeners.clickhouse.config.ClickHouseConfigV3;
 import ru.loadtest.listeners.clickhouse.config.ClickHousePluginGUIKeys;
 import ru.loadtest.listeners.clickhouse.filter.ISamplersFilter;
 import ru.loadtest.listeners.clickhouse.filter.SamplersFilter;
+import ru.loadtest.listeners.clickhouse.samplersbuffer.ISamplersBuffer;
+import ru.loadtest.listeners.clickhouse.samplersbuffer.SamplersBuffer;
 import ru.yandex.clickhouse.settings.ClickHouseProperties;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -21,7 +26,10 @@ public class ClickHouseBackendListenerClientV3 extends ClickHouseBackendListener
     protected ClickHouseConfigV3 clickHouseConfig;
     protected IClickHouseDBAdapter clickHouseDBAdapter;
     protected ISamplersFilter samplersFilter;
+
+    protected ISamplersBuffer samplersBuffer;
     private String SAMPLERS_SEPARATOR = ";";
+    private ScheduledExecutorService scheduler;
 
     @Override
     public Arguments getDefaultParameters() {
@@ -43,11 +51,39 @@ public class ClickHouseBackendListenerClientV3 extends ClickHouseBackendListener
         ) {
             clickHouseDBAdapter.createDatabaseIfNotExists();
         }
-        setUpSamplersFilter();
         scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(this, 1, 1, TimeUnit.SECONDS);
-        // Indicates whether to write sub sample records to the database
-        recordSubSamples = Boolean.parseBoolean(context.getParameter(KEY_RECORD_SUB_SAMPLES, "false"));
+        setUpSamplersFilter();
+        samplersBuffer = new SamplersBuffer(
+                samplersFilter,
+                clickHouseConfig.getParameters()
+                        .get(ClickHousePluginGUIKeys.RECORD_DATA_LEVEL.getStringKey()),
+                Boolean.parseBoolean(
+                        clickHouseConfig.getParameters()
+                                .get(ClickHousePluginGUIKeys.RECORD_SUB_SAMPLERS.getStringKey())
+                )
+        );
+    }
+
+    public void teardownTest(BackendListenerContext context) throws Exception {
+        super.getLogger().info("Shutting down clickHouse scheduler...");
+        if (
+                clickHouseConfig
+                        .getParameters()
+                        .get(ClickHousePluginGUIKeys.RECORD_DATA_LEVEL.getStringKey())
+                        .equals("aggregate")
+        ) {
+            this.flushAggregatedBatchPoints();
+        } else {
+            this.flushBatchPoints();
+        }
+
+        super.teardownTest(context);
+    }
+
+    @Override
+    public void handleSampleResults(List<SampleResult> sampleResults, BackendListenerContext context) {
+        samplersBuffer.addSamplers(sampleResults);
     }
 
     private void setupClickHouseAdapter() {
