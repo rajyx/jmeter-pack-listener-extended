@@ -65,15 +65,11 @@ public class ClickHouseBackendListenerClientV3 extends ClickHouseBackendListener
 
     public void teardownTest(BackendListenerContext context) throws Exception {
         super.getLogger().info("Shutting down clickHouse scheduler...");
-        if (
-                clickHouseConfig
-                        .getParameters()
-                        .get(ClickHousePluginGUIKeys.RECORD_DATA_LEVEL.getStringKey())
-                        .equals("aggregate")
-        ) {
-            this.flushAggregatedBatchPoints();
+        String recordDataLevel = clickHouseConfig.getParameters().get(ClickHousePluginGUIKeys.RECORD_DATA_LEVEL.getStringKey());
+        if (recordDataLevel.equals("aggregate")) {
+            clickHouseDBAdapter.flushBatchPoints(samplersBuffer.getSampleResults(), clickHouseConfig); // TODO add flushBatch for aggregated samplers
         } else {
-            this.flushBatchPoints();
+            clickHouseDBAdapter.flushBatchPoints(samplersBuffer.getSampleResults(), clickHouseConfig);
         }
 
         super.teardownTest(context);
