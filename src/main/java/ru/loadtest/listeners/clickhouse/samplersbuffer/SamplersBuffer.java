@@ -47,6 +47,11 @@ public class SamplersBuffer implements ISamplersBuffer {
                 if (sampleResult.getErrorCount() == 0) {
                     cleanSampleRequestAndResponseData(sampleResult);
                 }
+                break;
+            case "debug":
+                break;
+            default:
+                throw new IllegalArgumentException("No such record level");
 
         }
     }

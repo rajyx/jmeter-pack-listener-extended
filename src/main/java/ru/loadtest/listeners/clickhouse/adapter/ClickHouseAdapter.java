@@ -1,12 +1,19 @@
 package ru.loadtest.listeners.clickhouse.adapter;
 
 import org.apache.jmeter.samplers.SampleResult;
+import ru.loadtest.listeners.clickhouse.config.ClickHouseConfigV3;
+import ru.loadtest.listeners.clickhouse.config.ClickHousePluginGUIKeys;
 import ru.yandex.clickhouse.ClickHouseDataSource;
 import ru.yandex.clickhouse.settings.ClickHouseProperties;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 
 public class ClickHouseAdapter implements IClickHouseDBAdapter {
     private ClickHouseDataSource dataSource;
@@ -23,30 +30,8 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
                 "jdbc:clickhouse://" + dbName,
                 properties
         );
-        catchConnectionExceptions(
-                () -> connection = dataSource.getConnection()
-        );
-    }
-
-    @Override
-    public void createDatabaseIfNotExists() {
-        catchConnectionExceptions(
-                () -> {
-                    for (String query : List.of(
-                            "create database IF NOT EXISTS " + dbName,
-                            getQueryToCreateDataTable(),
-                            getQueryToCreateStatView(),
-                            getQueryToCreateBufferTable()
-                    )) {
-                        connection.createStatement().execute(query);
-                    }
-                }
-        );
-    }
-
-    private void catchConnectionExceptions(SQLFunction connectionFunction) {
         try {
-            connectionFunction.accept();
+            connection = dataSource.getConnection();
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -54,8 +39,62 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
     }
 
     @Override
-    public void flushBatchPoints(List<SampleResult> sampleResultList) {
+    public void createDatabaseIfNotExists() {
+        try {
+            for (String query : List.of(
+                    "create database IF NOT EXISTS " + dbName,
+                    getQueryToCreateDataTable(),
+                    getQueryToCreateStatView(),
+                    getQueryToCreateBufferTable()
+            )) {
+                connection.createStatement().execute(query);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
 
+    @Override
+    public void flushBatchPoints(List<SampleResult> sampleResultList, ClickHouseConfigV3 config) {
+        try {
+            PreparedStatement point = connection.prepareStatement(
+                    "INSERT INTO jmresults (" +
+                            "timestamp_sec, " +
+                            "timestamp_millis, " +
+                            "profile_name, " +
+                            "run_id, " +
+                            "hostname, " +
+                            "thread_name, " +
+                            "sample_label, " +
+                            "points_count, " +
+                            "errors_count, " +
+                            "average_time, " +
+                            "request, " +
+                            "response, " +
+                            "res_code" +
+                            ")" +
+                            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
+            );
+            Map<String, String> configParameters = config.getParameters();
+            for (SampleResult sampleResult : sampleResultList) {
+                point.setTimestamp(1, new Timestamp(sampleResult.getTimeStamp()));
+                point.setLong(2, sampleResult.getTimeStamp());
+                point.setString(3, configParameters.get(ClickHousePluginGUIKeys.PROFILE_NAME.getStringKey()));
+                point.setString(4, configParameters.get(ClickHousePluginGUIKeys.RUN_ID.getStringKey()));
+                point.setString(5, configParameters.get(ClickHousePluginGUIKeys.PROFILE_NAME.getStringKey()));
+                point.setString(6, getHostname());
+                point.setString(7, sampleResult.getSampleLabel());
+                point.setInt(8, 1);
+                point.setInt(9, sampleResult.getErrorCount());
+                point.setDouble(10, sampleResult.getTime());
+                point.setString(11, sampleResult.getSamplerData());
+                point.setString(12, sampleResult.getResponseDataAsString());
+            }
+        } catch (SQLException | UnknownHostException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     private String getQueryToCreateDataTable() {
@@ -130,5 +169,11 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
                 ") " +
                 "engine = Buffer(" +
                 dbName + ", jmresults_data, 16, 10, 60, 10000, 100000, 1000000, 10000000)";
+    }
+
+    private String getHostname() throws UnknownHostException {
+        InetAddress iAddress = InetAddress.getLocalHost();
+        String hostName = iAddress.getHostName();
+        return hostName;
     }
 }
