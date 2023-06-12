@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 public class ClickHouseBackendListenerClientV3 extends ClickHouseBackendListenerClientV2 {
     protected ClickHouseConfigV3 clickHouseConfig;
     protected IClickHouseDBAdapter clickHouseDBAdapter;
-    protected ISamplersFilter samplersFilter;
 
     protected ISamplersBuffer samplersBuffer;
     private String SAMPLERS_SEPARATOR = ";";
@@ -53,9 +52,8 @@ public class ClickHouseBackendListenerClientV3 extends ClickHouseBackendListener
         }
         scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(this, 1, 1, TimeUnit.SECONDS);
-        setUpSamplersFilter();
         samplersBuffer = new SamplersBuffer(
-                samplersFilter,
+                getSamplersFilter(),
                 clickHouseConfig.getParameters()
                         .get(ClickHousePluginGUIKeys.RECORD_DATA_LEVEL.getStringKey()),
                 Boolean.parseBoolean(
@@ -99,7 +97,7 @@ public class ClickHouseBackendListenerClientV3 extends ClickHouseBackendListener
         clickHouseDBAdapter.prepareConnection(properties);
     }
 
-    private void setUpSamplersFilter() {
+    private ISamplersFilter getSamplersFilter() {
         Boolean useRegexToSamplersFilter = Boolean.parseBoolean(
                 clickHouseConfig
                         .getParameters()
@@ -108,7 +106,7 @@ public class ClickHouseBackendListenerClientV3 extends ClickHouseBackendListener
         String samplersList = clickHouseConfig
                 .getParameters()
                 .get(ClickHousePluginGUIKeys.SAMPLERS_LIST.getStringKey());
-        samplersFilter = new SamplersFilter()
+        return new SamplersFilter()
                 .setFilterRegex(samplersList)
                 .setSamplersToStore(
                         useRegexToSamplersFilter
