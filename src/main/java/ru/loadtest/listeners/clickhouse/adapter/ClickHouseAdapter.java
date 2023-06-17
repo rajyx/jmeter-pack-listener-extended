@@ -1,6 +1,7 @@
 package ru.loadtest.listeners.clickhouse.adapter;
 
 import cloud.testload.jmeter.JMPoint;
+import com.strobel.core.Pair;
 import org.apache.jmeter.samplers.SampleResult;
 import ru.loadtest.listeners.clickhouse.config.ClickHouseConfigV3;
 import ru.loadtest.listeners.clickhouse.config.ClickHousePluginGUIKeys;
@@ -87,7 +88,7 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
                 point.setString(5, getHostname());
                 point.setString(6, sampleResult.getThreadName());
                 point.setString(7, sampleResult.getSampleLabel());
-                point.setInt(8, 1);
+                point.setInt(8, sampleResult.getSampleCount());
                 point.setInt(9, sampleResult.getErrorCount());
                 point.setDouble(10, sampleResult.getTime());
                 point.setString(11, sampleResult.getSamplerData());
@@ -104,22 +105,33 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
 
     @Override
     public void flushAggregatedBatchPoints(List<SampleResult> sampleResultList, ClickHouseConfigV3 config) {
-        final Map<String, AggregatedPoint> samplesTst = sampleResultList.stream()
+        final List<SampleResult> samplesTst = sampleResultList.stream()
                 .collect(
                         Collectors.groupingBy(
-                                SampleResult::getSampleLabel,
+                                sampler -> new Pair<>(sampler.getThreadName(), sampler.getSampleLabel()),
                                 Collectors.collectingAndThen(Collectors.toList(), list -> {
-                                            long errorsCount = list.stream().mapToLong(SampleResult::getErrorCount).sum();
-                                            long count = list.size();
+                                            int errorsCount = list.stream().mapToInt(SampleResult::getErrorCount).sum();
+                                            int count = list.size();
                                             double average = list.stream().collect(Collectors.averagingDouble(SampleResult::getTime));
-                                            return new AggregatedPoint()
-                                                    .setErrorsCount(errorsCount)
-                                                    .setPointsCount(count)
-                                                    .setAverageTime(average);
+                                            SampleResult aggregatedSampleResult = new SampleResult();
+                                            aggregatedSampleResult.setErrorCount(errorsCount);
+                                            aggregatedSampleResult.setSampleCount(count);
+                                            aggregatedSampleResult.setEndTime((long) average);
+                                            return aggregatedSampleResult;
                                         }
                                 )
                         )
-                );
+                ).entrySet()
+                .stream()
+                .map(
+                        entry -> {
+                            SampleResult sampleResult = entry.getValue();
+                            sampleResult.setThreadName(entry.getKey().getFirst());
+                            sampleResult.setSampleLabel(entry.getKey().getSecond());
+                            return sampleResult;
+                        }
+                ).toList();
+        flushBatchPoints(sampleResultList, config);
     }
 
     private String getQueryToCreateDataTable() {
