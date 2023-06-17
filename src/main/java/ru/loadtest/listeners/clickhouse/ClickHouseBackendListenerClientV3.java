@@ -67,7 +67,7 @@ public class ClickHouseBackendListenerClientV3 extends ClickHouseBackendListener
         super.getLogger().info("Shutting down clickHouse scheduler...");
         String recordDataLevel = clickHouseConfig.getParameters().get(ClickHousePluginGUIKeys.RECORD_DATA_LEVEL.getStringKey());
         if (recordDataLevel.equals("aggregate")) {
-            clickHouseDBAdapter.flushBatchPoints(samplersBuffer.getSampleResults(), clickHouseConfig); // TODO add flushBatch for aggregated samplers
+            clickHouseDBAdapter.flushAggregatedBatchPoints(samplersBuffer.getSampleResults(), clickHouseConfig);
         } else {
             clickHouseDBAdapter.flushBatchPoints(samplersBuffer.getSampleResults(), clickHouseConfig);
         }
@@ -86,7 +86,7 @@ public class ClickHouseBackendListenerClientV3 extends ClickHouseBackendListener
                 recordDataLevel.equals("aggregate")
                         && samplersBuffer.getSampleResults().size() >= groupByCount * batchSize
         ) {
-            clickHouseDBAdapter.flushBatchPoints(samplersBuffer.getSampleResults(), clickHouseConfig);
+            clickHouseDBAdapter.flushAggregatedBatchPoints(samplersBuffer.getSampleResults(), clickHouseConfig);
         } else if (samplersBuffer.getSampleResults().size() >= batchSize) {
             clickHouseDBAdapter.flushBatchPoints(samplersBuffer.getSampleResults(), clickHouseConfig);
         }
