@@ -1,6 +1,5 @@
 package ru.loadtest.listeners.clickhouse.adapter;
 
-import cloud.testload.jmeter.JMPoint;
 import com.strobel.core.Pair;
 import org.apache.jmeter.samplers.SampleResult;
 import ru.loadtest.listeners.clickhouse.config.ClickHouseConfigV3;
