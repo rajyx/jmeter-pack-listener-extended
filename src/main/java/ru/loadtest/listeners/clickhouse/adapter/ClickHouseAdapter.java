@@ -1,5 +1,6 @@
 package ru.loadtest.listeners.clickhouse.adapter;
 
+import cloud.testload.jmeter.JMPoint;
 import org.apache.jmeter.samplers.SampleResult;
 import ru.loadtest.listeners.clickhouse.config.ClickHouseConfigV3;
 import ru.loadtest.listeners.clickhouse.config.ClickHousePluginGUIKeys;
@@ -14,6 +15,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ClickHouseAdapter implements IClickHouseDBAdapter {
     private ClickHouseDataSource dataSource;
@@ -82,14 +84,15 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
                 point.setLong(2, sampleResult.getTimeStamp());
                 point.setString(3, configParameters.get(ClickHousePluginGUIKeys.PROFILE_NAME.getStringKey()));
                 point.setString(4, configParameters.get(ClickHousePluginGUIKeys.RUN_ID.getStringKey()));
-                point.setString(5, configParameters.get(ClickHousePluginGUIKeys.PROFILE_NAME.getStringKey()));
-                point.setString(6, getHostname());
+                point.setString(5, getHostname());
+                point.setString(6, sampleResult.getThreadName());
                 point.setString(7, sampleResult.getSampleLabel());
                 point.setInt(8, 1);
                 point.setInt(9, sampleResult.getErrorCount());
                 point.setDouble(10, sampleResult.getTime());
                 point.setString(11, sampleResult.getSamplerData());
                 point.setString(12, sampleResult.getResponseDataAsString());
+                point.setString(13, sampleResult.getResponseCode());
             }
             point.executeBatch();
             sampleResultList.clear();
@@ -97,6 +100,26 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void flushAggregatedBatchPoints(List<SampleResult> sampleResultList, ClickHouseConfigV3 config) {
+        final Map<String, AggregatedPoint> samplesTst = sampleResultList.stream()
+                .collect(
+                        Collectors.groupingBy(
+                                SampleResult::getSampleLabel,
+                                Collectors.collectingAndThen(Collectors.toList(), list -> {
+                                            long errorsCount = list.stream().mapToLong(SampleResult::getErrorCount).sum();
+                                            long count = list.size();
+                                            double average = list.stream().collect(Collectors.averagingDouble(SampleResult::getTime));
+                                            return new AggregatedPoint()
+                                                    .setErrorsCount(errorsCount)
+                                                    .setPointsCount(count)
+                                                    .setAverageTime(average);
+                                        }
+                                )
+                        )
+                );
     }
 
     private String getQueryToCreateDataTable() {
