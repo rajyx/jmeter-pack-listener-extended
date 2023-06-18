@@ -158,8 +158,8 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
     private String getQueryToCreateDataTable(String dbName) {
         return "create table IF NOT EXISTS " +
                 dbName + ".jmresults_data " +
-                "(ttimestamp_sec DateTime, " +
-                "ttimestamp_millis UInt64, " +
+                "(timestamp_sec DateTime, " +
+                "timestamp_millis UInt64, " +
                 "profile_name LowCardinality(String), " +
                 "run_id LowCardinality(String), " +
                 "hostname LowCardinality(String), " +
