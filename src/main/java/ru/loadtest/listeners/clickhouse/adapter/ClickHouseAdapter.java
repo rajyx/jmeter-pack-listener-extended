@@ -1,6 +1,6 @@
 package ru.loadtest.listeners.clickhouse.adapter;
 
-import com.strobel.core.Pair;
+
 import org.apache.jmeter.samplers.SampleResult;
 import ru.loadtest.listeners.clickhouse.config.ClickHouseConfigV3;
 import ru.loadtest.listeners.clickhouse.config.ClickHousePluginGUIKeys;
@@ -129,7 +129,7 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
         final List<SampleResult> samplesTst = sampleResultList.stream()
                 .collect(
                         Collectors.groupingBy(
-                                sampler -> new Pair<>(sampler.getThreadName(), sampler.getSampleLabel()),
+                                sampler -> new CustomSamplerPair(sampler.getThreadName(), sampler.getSampleLabel()),
                                 Collectors.collectingAndThen(Collectors.toList(), list -> {
                                             int errorsCount = list.stream().mapToInt(SampleResult::getErrorCount).sum();
                                             int count = list.size();
@@ -147,8 +147,8 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
                 .map(
                         entry -> {
                             SampleResult sampleResult = entry.getValue();
-                            sampleResult.setThreadName(entry.getKey().getFirst());
-                            sampleResult.setSampleLabel(entry.getKey().getSecond());
+                            sampleResult.setThreadName(entry.getKey().getThreadName());
+                            sampleResult.setSampleLabel(entry.getKey().getSamplerLabel());
                             return sampleResult;
                         }
                 ).toList();
