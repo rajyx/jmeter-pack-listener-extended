@@ -225,8 +225,8 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
                 "response String, " +
                 "res_code LowCardinality(String) " +
                 ") " +
-                "engine = Buffer(\'" +
-                dbName + "\', \'jmresults_data\', 16, 10, 60, 10000, 100000, 1000000, 10000000)";
+                "engine = Buffer('" +
+                dbName + "', 'jmresults_data', 16, 10, 60, 10000, 100000, 1000000, 10000000)";
     }
 
     private String getHostname() throws UnknownHostException {
