@@ -211,7 +211,7 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
         return "create table IF NOT EXISTS " +
                 dbName + ".jmresults " +
                 "(" +
-                "ttimestamp_sec DateTime, " +
+                "timestamp_sec DateTime, " +
                 "timestamp_millis UInt64, " +
                 "profile_name LowCardinality(String), " +
                 "run_id LowCardinality(String), " +
@@ -226,7 +226,7 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
                 "res_code LowCardinality(String) " +
                 ") " +
                 "engine = Buffer(" +
-                dbName + ", jmresults_data, 16, 10, 60, 10000, 100000, 1000000, 10000000)";
+                dbName + ".jmresults_data, 16, 10, 60, 10000, 100000, 1000000, 10000000)";
     }
 
     private String getHostname() throws UnknownHostException {
