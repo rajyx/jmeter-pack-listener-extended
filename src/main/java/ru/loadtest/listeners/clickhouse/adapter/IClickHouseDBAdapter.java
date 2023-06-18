@@ -11,8 +11,9 @@ public interface IClickHouseDBAdapter {
 
     void prepareConnection(ClickHouseProperties properties);
 
-    void createDatabaseIfNotExists();
+    void createDatabaseIfNotExists(String dbName);
 
     void flushBatchPoints(List<SampleResult> sampleResultList, ClickHouseConfigV3 config);
+
     void flushAggregatedBatchPoints(List<SampleResult> sampleResultList, ClickHouseConfigV3 config);
 }

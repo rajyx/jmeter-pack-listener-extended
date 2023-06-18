@@ -43,13 +43,6 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
     public void setupTest(BackendListenerContext context) throws Exception {
         clickHouseConfig = new ClickHouseConfigV3(context);
         setupClickHouseAdapter();
-        if (
-                Boolean.parseBoolean(
-                        clickHouseConfig.getParameters().get(ClickHousePluginGUIKeys.CREATE_DEFINITIONS.getStringKey())
-                )
-        ) {
-            clickHouseDBAdapter.createDatabaseIfNotExists();
-        }
         scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(this, 1, 1, TimeUnit.SECONDS);
         samplersBuffer = new SamplersBuffer(

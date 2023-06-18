@@ -22,8 +22,8 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
     private Connection connection;
     private String dbUrl;
 
-    public ClickHouseAdapter(String dbName) {
-        this.dbUrl = dbName;
+    public ClickHouseAdapter(String dbUrl) {
+        this.dbUrl = dbUrl;
     }
 
     @Override
@@ -34,6 +34,19 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
         );
         try {
             connection = dataSource.getConnection();
+        } catch (IllegalStateException e) {
+            try {
+                connection.close();
+                String database = properties.getDatabase();
+                properties.setDatabase("");
+                connection = dataSource.getConnection();
+                createDatabaseIfNotExists(database);
+                connection.close();
+                properties.setDatabase(database);
+                connection = dataSource.getConnection();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -41,13 +54,13 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
     }
 
     @Override
-    public void createDatabaseIfNotExists() {
+    public void createDatabaseIfNotExists(String dbName) {
         try {
             for (String query : List.of(
-                    "create database IF NOT EXISTS " + dbUrl,
-                    getQueryToCreateDataTable(),
-                    getQueryToCreateStatView(),
-                    getQueryToCreateBufferTable()
+                    "create database IF NOT EXISTS " + dbName,
+                    getQueryToCreateDataTable(dbName),
+                    getQueryToCreateStatView(dbName),
+                    getQueryToCreateBufferTable(dbName)
             )) {
                 connection.createStatement().execute(query);
             }
@@ -133,9 +146,9 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
         flushBatchPoints(sampleResultList, config);
     }
 
-    private String getQueryToCreateDataTable() {
+    private String getQueryToCreateDataTable(String dbName) {
         return "create table IF NOT EXISTS " +
-                dbUrl + ".jmresults_data " +
+                dbName + ".jmresults_data " +
                 "(ttimestamp_sec DateTime, " +
                 "ttimestamp_millis UInt64, " +
                 "profile_name LowCardinality(String), " +
@@ -156,9 +169,9 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
                 "SETTINGS index_granularity = 8192";
     }
 
-    private String getQueryToCreateStatView() {
+    private String getQueryToCreateStatView(String dbName) {
         return "CREATE MATERIALIZED VIEW IF NOT EXISTS " +
-                dbUrl + ".jmresults_statistic (" +
+                dbName + ".jmresults_statistic (" +
                 "`timestamp_sec` DateTime, " +
                 "`timestamp_millis` UInt64, " +
                 "`profile_name` LowCardinality(String), " +
@@ -182,12 +195,12 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
                 "errors_count, " +
                 "average_time, " +
                 "res_code " +
-                "FROM " + dbUrl + ".jmresults_data";
+                "FROM " + dbName + ".jmresults_data";
     }
 
-    private String getQueryToCreateBufferTable() {
+    private String getQueryToCreateBufferTable(String dbName) {
         return "create table IF NOT EXISTS " +
-                dbUrl + ".jmresults " +
+                dbName + ".jmresults " +
                 "(" +
                 "ttimestamp_sec DateTime, " +
                 "timestamp_millis UInt64, " +
@@ -204,7 +217,7 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
                 "res_code LowCardinality(String) " +
                 ") " +
                 "engine = Buffer(" +
-                dbUrl + ", jmresults_data, 16, 10, 60, 10000, 100000, 1000000, 10000000)";
+                dbName + ", jmresults_data, 16, 10, 60, 10000, 100000, 1000000, 10000000)";
     }
 
     private String getHostname() throws UnknownHostException {
