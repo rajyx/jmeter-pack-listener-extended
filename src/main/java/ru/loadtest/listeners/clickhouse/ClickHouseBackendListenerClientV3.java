@@ -1,9 +1,12 @@
 package ru.loadtest.listeners.clickhouse;
 
+import cloud.testload.jmeter.ClickHouseBackendListenerClient;
 import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.visualizers.backend.AbstractBackendListenerClient;
 import org.apache.jmeter.visualizers.backend.BackendListenerContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.loadtest.listeners.clickhouse.adapter.ClickHouseAdapter;
 import ru.loadtest.listeners.clickhouse.adapter.IClickHouseDBAdapter;
 import ru.loadtest.listeners.clickhouse.config.ClickHouseConfigV3;
@@ -27,8 +30,8 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
     protected IClickHouseDBAdapter clickHouseDBAdapter;
 
     protected ISamplersBuffer samplersBuffer;
-    private String SAMPLERS_SEPARATOR = ";";
     private ScheduledExecutorService scheduler;
+    private final Logger LOGGER = LoggerFactory.getLogger(ClickHouseBackendListenerClientV3.class);
 
     @Override
     public Arguments getDefaultParameters() {
@@ -57,7 +60,7 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
     }
 
     public void teardownTest(BackendListenerContext context) throws Exception {
-        super.getLogger().info("Shutting down clickHouse scheduler...");
+        LOGGER.info("Shutting down clickHouse scheduler...");
         String recordDataLevel = clickHouseConfig.getParameters().get(ClickHousePluginGUIKeys.RECORD_DATA_LEVEL.getStringKey());
         if (recordDataLevel.equals("aggregate")) {
             clickHouseDBAdapter.flushAggregatedBatchPoints(samplersBuffer.getSampleResults(), clickHouseConfig);
@@ -104,7 +107,7 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
     }
 
     private ISamplersFilter getSamplersFilter() {
-        Boolean useRegexToSamplersFilter = Boolean.parseBoolean(
+        boolean useRegexToSamplersFilter = Boolean.parseBoolean(
                 clickHouseConfig
                         .getParameters()
                         .get(ClickHousePluginGUIKeys.USE_REGEX_FOR_SAMPLERS_LIST.getStringKey())
@@ -112,6 +115,7 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
         String samplersList = clickHouseConfig
                 .getParameters()
                 .get(ClickHousePluginGUIKeys.SAMPLERS_LIST.getStringKey());
+        final String SAMPLERS_SEPARATOR = ";";
         return new SamplersFilter()
                 .setFilterRegex(samplersList)
                 .setSamplersToStore(
