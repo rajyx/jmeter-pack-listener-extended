@@ -20,16 +20,16 @@ import java.util.stream.Collectors;
 public class ClickHouseAdapter implements IClickHouseDBAdapter {
     private ClickHouseDataSource dataSource;
     private Connection connection;
-    private String dbName;
+    private String dbUrl;
 
     public ClickHouseAdapter(String dbName) {
-        this.dbName = dbName;
+        this.dbUrl = dbName;
     }
 
     @Override
     public void prepareConnection(ClickHouseProperties properties) {
         dataSource = new ClickHouseDataSource(
-                "jdbc:clickhouse://" + dbName,
+                "jdbc:clickhouse://" + dbUrl,
                 properties
         );
         try {
@@ -44,7 +44,7 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
     public void createDatabaseIfNotExists() {
         try {
             for (String query : List.of(
-                    "create database IF NOT EXISTS " + dbName,
+                    "create database IF NOT EXISTS " + dbUrl,
                     getQueryToCreateDataTable(),
                     getQueryToCreateStatView(),
                     getQueryToCreateBufferTable()
@@ -135,7 +135,7 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
 
     private String getQueryToCreateDataTable() {
         return "create table IF NOT EXISTS " +
-                dbName + ".jmresults_data " +
+                dbUrl + ".jmresults_data " +
                 "(ttimestamp_sec DateTime, " +
                 "ttimestamp_millis UInt64, " +
                 "profile_name LowCardinality(String), " +
@@ -158,7 +158,7 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
 
     private String getQueryToCreateStatView() {
         return "CREATE MATERIALIZED VIEW IF NOT EXISTS " +
-                dbName + ".jmresults_statistic (" +
+                dbUrl + ".jmresults_statistic (" +
                 "`timestamp_sec` DateTime, " +
                 "`timestamp_millis` UInt64, " +
                 "`profile_name` LowCardinality(String), " +
@@ -182,12 +182,12 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
                 "errors_count, " +
                 "average_time, " +
                 "res_code " +
-                "FROM " + dbName + ".jmresults_data";
+                "FROM " + dbUrl + ".jmresults_data";
     }
 
     private String getQueryToCreateBufferTable() {
         return "create table IF NOT EXISTS " +
-                dbName + ".jmresults " +
+                dbUrl + ".jmresults " +
                 "(" +
                 "ttimestamp_sec DateTime, " +
                 "timestamp_millis UInt64, " +
@@ -204,7 +204,7 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
                 "res_code LowCardinality(String) " +
                 ") " +
                 "engine = Buffer(" +
-                dbName + ", jmresults_data, 16, 10, 60, 10000, 100000, 1000000, 10000000)";
+                dbUrl + ", jmresults_data, 16, 10, 60, 10000, 100000, 1000000, 10000000)";
     }
 
     private String getHostname() throws UnknownHostException {
