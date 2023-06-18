@@ -68,8 +68,8 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
             for (String query : List.of(
                     "create database IF NOT EXISTS " + dbName,
                     getQueryToCreateDataTable(dbName),
-                    getQueryToCreateStatView(dbName)/*,
-                    getQueryToCreateBufferTable(dbName)*/
+                    getQueryToCreateStatView(dbName),
+                    getQueryToCreateBufferTable(dbName)
             )) {
                 connection.createStatement().execute(query);
             }
