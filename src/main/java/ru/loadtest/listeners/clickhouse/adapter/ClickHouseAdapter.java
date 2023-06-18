@@ -21,40 +21,49 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
     private ClickHouseDataSource dataSource;
     private Connection connection;
     private String dbUrl;
+    private boolean createDefinitions;
 
-    public ClickHouseAdapter(String dbUrl) {
+    public ClickHouseAdapter(String dbUrl, boolean createDefinitions) {
         this.dbUrl = dbUrl;
+        this.createDefinitions = createDefinitions;
     }
 
     @Override
     public void prepareConnection(ClickHouseProperties properties) {
+        if (createDefinitions) {
+            setUpDatabase(properties);
+        }
         dataSource = new ClickHouseDataSource(
                 "jdbc:clickhouse://" + dbUrl,
                 properties
         );
         try {
             connection = dataSource.getConnection();
-        } catch (IllegalStateException e) {
-            try {
-                connection.close();
-                String database = properties.getDatabase();
-                properties.setDatabase("");
-                connection = dataSource.getConnection();
-                createDatabaseIfNotExists(database);
-                connection.close();
-                properties.setDatabase(database);
-                connection = dataSource.getConnection();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
     }
 
-    @Override
-    public void createDatabaseIfNotExists(String dbName) {
+    private void setUpDatabase(ClickHouseProperties properties) {
+        String dbName = properties.getDatabase();
+        properties.setDatabase("");
+        dataSource = new ClickHouseDataSource(
+                "jdbc:clickhouse://" + dbUrl,
+                properties
+        );
+        try {
+            connection = dataSource.getConnection();
+            createDatabaseIfNotExists(dbName);
+            connection.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            properties.setDatabase(dbName);
+        }
+    }
+
+    private void createDatabaseIfNotExists(String dbName) {
         try {
             for (String query : List.of(
                     "create database IF NOT EXISTS " + dbName,

@@ -94,7 +94,7 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
         properties.setPassword(configParameters.get(ClickHousePluginGUIKeys.PASSWORD.getStringKey()));
         properties.setConnectionTimeout(Integer.parseInt(configParameters.get(ClickHousePluginGUIKeys.CONNECT_TIMEOUT.getStringKey())));
         properties.setSocketTimeout(Integer.parseInt(configParameters.get(ClickHousePluginGUIKeys.CONNECT_TIMEOUT.getStringKey())));
-        clickHouseDBAdapter = new ClickHouseAdapter(configParameters.get(ClickHousePluginGUIKeys.URL.getStringKey()));
+        clickHouseDBAdapter = new ClickHouseAdapter(configParameters.get(ClickHousePluginGUIKeys.URL.getStringKey()), createDefinitions);
         clickHouseDBAdapter.prepareConnection(properties);
     }
 
