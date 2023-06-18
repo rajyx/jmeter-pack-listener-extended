@@ -1,7 +1,6 @@
 package ru.loadtest.listeners.clickhouse.samplersbuffer;
 
 import org.apache.jmeter.samplers.SampleResult;
-import org.slf4j.LoggerFactory;
 import ru.loadtest.listeners.clickhouse.filter.ISamplersFilter;
 
 import java.util.ArrayList;
@@ -27,7 +26,6 @@ public class SamplersBuffer implements ISamplersBuffer {
         for (int i = 0; i < sampleResults.size(); i++) {
             SampleResult sample = sampleResults.get(i);
             if (samplersFilter.isSamplerValid(sample)) {
-                cleanSampleData(sample);
                 allSampleResults.add(sample);
             }
             List<SampleResult> subSamplers = Arrays.asList(sample.getSubResults());
@@ -40,25 +38,6 @@ public class SamplersBuffer implements ISamplersBuffer {
     @Override
     public List<SampleResult> getSampleResults() {
         return allSampleResults;
-    }
-
-    protected void cleanSampleData(SampleResult sampleResult) {
-        switch (recordDataLevel) {
-            case "aggregate":
-            case "info":
-                cleanSampleRequestAndResponseData(sampleResult);
-                break;
-            case "error":
-                if (sampleResult.getErrorCount() == 0) {
-                    cleanSampleRequestAndResponseData(sampleResult);
-                }
-                break;
-            case "debug":
-                break;
-            default:
-                throw new IllegalArgumentException("No such record level");
-
-        }
     }
 
     private void cleanSampleRequestAndResponseData(SampleResult sampleResult) {

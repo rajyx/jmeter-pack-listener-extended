@@ -112,8 +112,7 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
                 point.setInt(8, sampleResult.getSampleCount());
                 point.setInt(9, sampleResult.getErrorCount());
                 point.setDouble(10, sampleResult.getTime());
-                point.setString(11, sampleResult.getSamplerData());
-                point.setString(12, sampleResult.getResponseDataAsString());
+                setFilteredRequestResponseData(point, configParameters, sampleResult);
                 point.setString(13, sampleResult.getResponseCode());
                 point.addBatch();
             }
@@ -154,6 +153,34 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
                         }
                 ).toList();
         flushBatchPoints(sampleResultList, config);
+    }
+
+    private void setFilteredRequestResponseData(
+            PreparedStatement point,
+            Map<String, String> configParameters,
+            SampleResult sampleResult
+    ) throws SQLException {
+        String samplerRequest = sampleResult.getSamplerData();
+        String samplerResponse = sampleResult.getResponseDataAsString();
+        switch (configParameters.get(ClickHousePluginGUIKeys.RECORD_DATA_LEVEL.getStringKey())) {
+            case "aggregate":
+            case "info":
+                samplerRequest = "";
+                samplerResponse = "";
+                break;
+            case "error":
+                if (sampleResult.getErrorCount() == 0) {
+                    samplerRequest = "";
+                    samplerResponse = "";
+                }
+                break;
+            case "debug":
+                break;
+            default:
+                throw new IllegalArgumentException("No such record level");
+        }
+        point.setString(11, samplerRequest);
+        point.setString(12, samplerResponse);
     }
 
     private String getQueryToCreateDataTable(String dbName) {
