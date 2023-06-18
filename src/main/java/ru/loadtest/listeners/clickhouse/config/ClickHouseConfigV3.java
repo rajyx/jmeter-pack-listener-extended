@@ -3,6 +3,7 @@ package ru.loadtest.listeners.clickhouse.config;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.visualizers.backend.BackendListenerContext;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +27,7 @@ public class ClickHouseConfigV3 {
     );
 
     public ClickHouseConfigV3(BackendListenerContext context) {
+        this.parameters = new HashMap<>();
         parameterKeys.forEach(
                 it -> {
                     String keyStringValue = it.getStringKey();
