@@ -1,8 +1,8 @@
 package ru.loadtest.listeners.clickhouse;
 
-import cloud.testload.jmeter.ClickHouseBackendListenerClientV2;
 import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.samplers.SampleResult;
+import org.apache.jmeter.visualizers.backend.AbstractBackendListenerClient;
 import org.apache.jmeter.visualizers.backend.BackendListenerContext;
 import ru.loadtest.listeners.clickhouse.adapter.ClickHouseAdapter;
 import ru.loadtest.listeners.clickhouse.adapter.IClickHouseDBAdapter;
@@ -22,7 +22,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public class ClickHouseBackendListenerClientV3 extends ClickHouseBackendListenerClientV2 {
+public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerClient implements Runnable {
     protected ClickHouseConfigV3 clickHouseConfig;
     protected IClickHouseDBAdapter clickHouseDBAdapter;
 
@@ -123,5 +123,9 @@ public class ClickHouseBackendListenerClientV3 extends ClickHouseBackendListener
                                 samplersList.split(SAMPLERS_SEPARATOR)
                         ).collect(Collectors.toSet())
                 );
+    }
+
+    @Override
+    public void run() {
     }
 }
