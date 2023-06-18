@@ -68,8 +68,8 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
             for (String query : List.of(
                     "create database IF NOT EXISTS " + dbName,
                     getQueryToCreateDataTable(dbName),
-                    getQueryToCreateStatView(dbName),
-                    getQueryToCreateBufferTable(dbName)
+                    getQueryToCreateStatView(dbName)/*,
+                    getQueryToCreateBufferTable(dbName)*/
             )) {
                 connection.createStatement().execute(query);
             }
@@ -179,7 +179,7 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
     }
 
     private String getQueryToCreateStatView(String dbName) {
-        return "CREATE MATERIALIZED VIEW IF NOT EXISTS " +
+        return "CREATE VIEW IF NOT EXISTS " +
                 dbName + ".jmresults_statistic (" +
                 "`timestamp_sec` DateTime, " +
                 "`timestamp_millis` UInt64, " +
