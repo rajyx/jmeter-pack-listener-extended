@@ -40,9 +40,4 @@ public class SamplersBuffer implements ISamplersBuffer {
         return allSampleResults;
     }
 
-    private void cleanSampleRequestAndResponseData(SampleResult sampleResult) {
-        sampleResult.setSamplerData("");
-        sampleResult.setResponseData("");
-    }
-
 }
