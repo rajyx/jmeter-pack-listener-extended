@@ -3,5 +3,5 @@ package ru.loadtest.listeners.clickhouse.filter;
 import org.apache.jmeter.samplers.SampleResult;
 
 public interface ISamplersFilter {
-    boolean isSamplerForbidden(SampleResult sampler);
+    boolean isSamplerValid(SampleResult sampler);
 }

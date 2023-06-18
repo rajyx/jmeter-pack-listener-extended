@@ -83,7 +83,7 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
     public void flushBatchPoints(List<SampleResult> sampleResultList, ClickHouseConfigV3 config) {
         try {
             PreparedStatement point = connection.prepareStatement(
-                    "INSERT INTO jmresults (" +
+                    "INSERT INTO super_extended.jmresults (" +
                             "timestamp_sec, " +
                             "timestamp_millis, " +
                             "profile_name, " +
@@ -115,6 +115,7 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
                 point.setString(11, sampleResult.getSamplerData());
                 point.setString(12, sampleResult.getResponseDataAsString());
                 point.setString(13, sampleResult.getResponseCode());
+                point.addBatch();
             }
             point.executeBatch();
             sampleResultList.clear();

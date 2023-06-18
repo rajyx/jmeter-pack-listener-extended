@@ -19,7 +19,7 @@ public class SamplersFilter implements ISamplersFilter {
     }
 
     @Override
-    public boolean isSamplerForbidden(SampleResult sampler) {
+    public boolean isSamplerValid(SampleResult sampler) {
         String samplerLabel = sampler.getSampleLabel();
         if (samplersToStore != null) {
             return samplersToStore.contains(samplerLabel);

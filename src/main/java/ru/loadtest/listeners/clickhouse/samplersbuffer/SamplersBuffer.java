@@ -1,6 +1,7 @@
 package ru.loadtest.listeners.clickhouse.samplersbuffer;
 
 import org.apache.jmeter.samplers.SampleResult;
+import org.slf4j.LoggerFactory;
 import ru.loadtest.listeners.clickhouse.filter.ISamplersFilter;
 
 import java.util.ArrayList;
@@ -23,18 +24,17 @@ public class SamplersBuffer implements ISamplersBuffer {
 
     @Override
     public void addSamplers(List<SampleResult> sampleResults) {
-        sampleResults.forEach(
-                it -> {
-                    if (!samplersFilter.isSamplerForbidden(it)) {
-                        cleanSampleData(it);
-                        sampleResults.add(it);
-                    }
-                    List<SampleResult> subSamplers = Arrays.asList(it.getSubResults());
-                    if (recordSubSamplers && subSamplers.size() > 0) {
-                        addSamplers(subSamplers);
-                    }
-                }
-        );
+        for (int i = 0; i < sampleResults.size(); i++) {
+            SampleResult sample = sampleResults.get(i);
+            if (samplersFilter.isSamplerValid(sample)) {
+                cleanSampleData(sample);
+                allSampleResults.add(sample);
+            }
+            List<SampleResult> subSamplers = Arrays.asList(sample.getSubResults());
+            if (recordSubSamplers && subSamplers.size() > 0) {
+                addSamplers(subSamplers);
+            }
+        }
     }
 
     @Override
