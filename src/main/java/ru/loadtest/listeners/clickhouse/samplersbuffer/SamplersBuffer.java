@@ -10,13 +10,11 @@ import java.util.List;
 public class SamplersBuffer implements ISamplersBuffer {
     private List<SampleResult> allSampleResults;
     private ISamplersFilter samplersFilter;
-    private String recordDataLevel;
 
     private boolean recordSubSamplers;
 
-    public SamplersBuffer(ISamplersFilter samplersFilter, String recordDataLevel, boolean recordSubSamplers) {
+    public SamplersBuffer(ISamplersFilter samplersFilter, boolean recordSubSamplers) {
         this.samplersFilter = samplersFilter;
-        this.recordDataLevel = recordDataLevel;
         this.recordSubSamplers = recordSubSamplers;
         this.allSampleResults = new ArrayList<>();
     }

@@ -50,8 +50,6 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
         scheduler.scheduleAtFixedRate(this, 1, 1, TimeUnit.SECONDS);
         samplersBuffer = new SamplersBuffer(
                 getSamplersFilter(),
-                clickHouseConfig.getParameters()
-                        .get(ClickHousePluginGUIKeys.RECORD_DATA_LEVEL.getStringKey()),
                 Boolean.parseBoolean(
                         clickHouseConfig.getParameters()
                                 .get(ClickHousePluginGUIKeys.RECORD_SUB_SAMPLERS.getStringKey())
