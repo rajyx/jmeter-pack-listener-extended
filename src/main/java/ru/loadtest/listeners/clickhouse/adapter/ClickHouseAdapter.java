@@ -82,24 +82,7 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
     @Override
     public void flushBatchPoints(List<SampleResult> sampleResultList, ClickHouseConfigV3 config) {
         try {
-            PreparedStatement point = connection.prepareStatement(
-                    "INSERT INTO super_extended.jmresults (" +
-                            "timestamp_sec, " +
-                            "timestamp_millis, " +
-                            "profile_name, " +
-                            "run_id, " +
-                            "hostname, " +
-                            "thread_name, " +
-                            "sample_label, " +
-                            "points_count, " +
-                            "errors_count, " +
-                            "average_time, " +
-                            "request, " +
-                            "response, " +
-                            "res_code" +
-                            ")" +
-                            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
-            );
+            PreparedStatement point = connection.prepareStatement(getQueryForFlushBatchPoint());
             Map<String, String> configParameters = config.getParameters();
             for (SampleResult sampleResult : sampleResultList) {
                 point.setTimestamp(1, new Timestamp(sampleResult.getTimeStamp()));
@@ -117,7 +100,6 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
                 point.addBatch();
             }
             point.executeBatch();
-            sampleResultList.clear();
         } catch (SQLException | UnknownHostException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -126,33 +108,54 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
 
     @Override
     public void flushAggregatedBatchPoints(List<SampleResult> sampleResultList, ClickHouseConfigV3 config) {
-        final List<SampleResult> samplesTst = sampleResultList.stream()
-                .collect(
-                        Collectors.groupingBy(
-                                sampler -> new CustomSamplerPair(sampler.getThreadName(), sampler.getSampleLabel()),
-                                Collectors.collectingAndThen(Collectors.toList(), list -> {
-                                            int errorsCount = list.stream().mapToInt(SampleResult::getErrorCount).sum();
-                                            int count = list.size();
-                                            double average = list.stream().collect(Collectors.averagingDouble(SampleResult::getTime));
-                                            SampleResult aggregatedSampleResult = new SampleResult();
-                                            aggregatedSampleResult.setErrorCount(errorsCount);
-                                            aggregatedSampleResult.setSampleCount(count);
-                                            aggregatedSampleResult.setEndTime((long) average);
-                                            return aggregatedSampleResult;
-                                        }
-                                )
-                        )
-                ).entrySet()
-                .stream()
-                .map(
-                        entry -> {
-                            SampleResult sampleResult = entry.getValue();
-                            sampleResult.setThreadName(entry.getKey().getThreadName());
-                            sampleResult.setSampleLabel(entry.getKey().getSamplerLabel());
-                            return sampleResult;
-                        }
-                ).toList();
-        flushBatchPoints(sampleResultList, config);
+        try {
+            PreparedStatement point = connection.prepareStatement(getQueryForFlushBatchPoint());
+            Map<String, String> configParameters = config.getParameters();
+            List<AggregatedSampeResult> aggregatedSampleResults = sampleResultList.stream()
+                    .collect(
+                            Collectors.groupingBy(
+                                    sampler -> new CustomSamplerPair(sampler.getThreadName(), sampler.getSampleLabel()),
+                                    Collectors.collectingAndThen(Collectors.toList(), list -> {
+                                                int errorsCount = list.stream().mapToInt(SampleResult::getErrorCount).sum();
+                                                int count = list.size();
+                                                double average = list.stream().collect(Collectors.averagingDouble(SampleResult::getTime));
+                                                return new AggregatedSampeResult()
+                                                        .setPointCount(count)
+                                                        .setAverageTime((long) average)
+                                                        .setErrosCount(errorsCount);
+                                            }
+                                    )
+                            )
+                    ).entrySet()
+                    .stream()
+                    .map(
+                            entry -> entry.getValue()
+                                    .setSampleLabel(entry.getKey().getSamplerLabel())
+                                    .setThreadName(entry.getKey().getThreadName())
+                    )
+                    .toList();
+            for (AggregatedSampeResult sampeResult : aggregatedSampleResults) {
+                long currentTimeInMillis = System.currentTimeMillis();
+                point.setTimestamp(1, new Timestamp(currentTimeInMillis));
+                point.setLong(2, currentTimeInMillis);
+                point.setString(3, configParameters.get(ClickHousePluginGUIKeys.PROFILE_NAME.getStringKey()));
+                point.setString(4, configParameters.get(ClickHousePluginGUIKeys.RUN_ID.getStringKey()));
+                point.setString(5, getHostname());
+                point.setString(6, sampeResult.getThreadName());
+                point.setString(7, sampeResult.getSampleLabel());
+                point.setInt(8, sampeResult.getPointCount());
+                point.setInt(9, sampeResult.getErrorsCount());
+                point.setDouble(10, sampeResult.getAverageTime());
+                point.setString(11, "");
+                point.setString(12, "");
+                point.setString(13, "");
+                point.addBatch();
+            }
+            point.executeBatch();
+        } catch (SQLException | UnknownHostException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     private void setFilteredRequestResponseData(
@@ -255,6 +258,25 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
                 ") " +
                 "engine = Buffer('" +
                 dbName + "', 'jmresults_data', 16, 10, 60, 10000, 100000, 1000000, 10000000)";
+    }
+
+    private String getQueryForFlushBatchPoint() {
+        return "INSERT INTO jmresults (" +
+                "timestamp_sec, " +
+                "timestamp_millis, " +
+                "profile_name, " +
+                "run_id, " +
+                "hostname, " +
+                "thread_name, " +
+                "sample_label, " +
+                "points_count, " +
+                "errors_count, " +
+                "average_time, " +
+                "request, " +
+                "response, " +
+                "res_code" +
+                ")" +
+                " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
     }
 
     private String getHostname() throws UnknownHostException {
