@@ -8,4 +8,6 @@ public interface ISamplersBuffer {
     void addSamplers(List<SampleResult> sampleResultList);
 
     List<SampleResult> getSampleResults();
+
+    void clearBuffer();
 }

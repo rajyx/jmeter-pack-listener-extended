@@ -61,8 +61,10 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
         String recordDataLevel = clickHouseConfig.getParameters().get(ClickHousePluginGUIKeys.RECORD_DATA_LEVEL.getStringKey());
         if (recordDataLevel.equals("aggregate")) {
             clickHouseDBAdapter.flushAggregatedBatchPoints(samplersBuffer.getSampleResults(), clickHouseConfig);
+            samplersBuffer.clearBuffer();
         } else {
             clickHouseDBAdapter.flushBatchPoints(samplersBuffer.getSampleResults(), clickHouseConfig);
+            samplersBuffer.clearBuffer();
         }
 
         super.teardownTest(context);
@@ -80,8 +82,10 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
                         && samplersBuffer.getSampleResults().size() >= groupByCount * batchSize
         ) {
             clickHouseDBAdapter.flushAggregatedBatchPoints(samplersBuffer.getSampleResults(), clickHouseConfig);
+            samplersBuffer.clearBuffer();
         } else if (samplersBuffer.getSampleResults().size() >= batchSize) {
             clickHouseDBAdapter.flushBatchPoints(samplersBuffer.getSampleResults(), clickHouseConfig);
+            samplersBuffer.clearBuffer();
         }
     }
 
