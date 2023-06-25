@@ -1,6 +1,5 @@
 package ru.loadtest.listeners.clickhouse;
 
-import cloud.testload.jmeter.ClickHouseBackendListenerClient;
 import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.visualizers.backend.AbstractBackendListenerClient;
