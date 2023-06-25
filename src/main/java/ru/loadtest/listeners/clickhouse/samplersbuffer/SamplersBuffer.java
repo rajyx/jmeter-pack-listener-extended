@@ -38,4 +38,9 @@ public class SamplersBuffer implements ISamplersBuffer {
         return allSampleResults;
     }
 
+    @Override
+    public void clearBuffer() {
+        allSampleResults.clear();
+    }
+
 }
