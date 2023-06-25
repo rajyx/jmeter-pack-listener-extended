@@ -25,7 +25,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <jmeter.pack-listener.version>2.07</jmeter.pack-listener.version>
-        <junit.version>3.8.1</junit.version>
+        <junit.version>4.13.2</junit.version>
         <org.apache.jmeter.version>5.1</org.apache.jmeter.version>
         <org.apache.commons>3.7</org.apache.commons>
     </properties>
