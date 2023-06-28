@@ -102,7 +102,6 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
             point.executeBatch();
         } catch (SQLException | UnknownHostException e) {
             e.printStackTrace();
-            throw new RuntimeException(e);
         }
     }
 
@@ -153,7 +152,7 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
             }
             point.executeBatch();
         } catch (SQLException | UnknownHostException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
 
     }
