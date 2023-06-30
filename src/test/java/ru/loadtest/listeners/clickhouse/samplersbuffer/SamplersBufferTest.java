@@ -42,9 +42,10 @@ public class SamplersBufferTest {
     }
 
     private List<SampleResult> getSampleResultsInQuantityWithNamePrefix(int quantity, String samplerPrefix) {
+        int defaultSampleElapsed = 200;
         List<SampleResult> sampleResults = new ArrayList<>();
         for (int i = 0; i < quantity; i++) {
-            SampleResult sampleResult = new SampleResult(System.currentTimeMillis(), 200);
+            SampleResult sampleResult = new SampleResult(System.currentTimeMillis(), defaultSampleElapsed);
             sampleResult.setSampleLabel(samplerPrefix + i);
             sampleResult.setSuccessful(true);
             sampleResults.add(sampleResult);
