@@ -8,11 +8,13 @@ public class SamplersFilter implements ISamplersFilter {
     private String filterRegex;
     private Set<String> samplersToStore;
 
+    @Override
     public SamplersFilter setFilterRegex(String filterRegex) {
         this.filterRegex = filterRegex;
         return this;
     }
 
+    @Override
     public SamplersFilter setSamplersToStore(Set<String> samplersToStore) {
         this.samplersToStore = samplersToStore;
         return this;

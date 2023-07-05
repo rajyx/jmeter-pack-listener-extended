@@ -56,6 +56,7 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
         );
     }
 
+    @Override
     public void teardownTest(BackendListenerContext context) throws Exception {
         LOGGER.info("Shutting down clickHouse scheduler...");
         String recordDataLevel = clickHouseConfig.getParameters().get(ClickHousePluginGUIKeys.RECORD_DATA_LEVEL.getStringKey());

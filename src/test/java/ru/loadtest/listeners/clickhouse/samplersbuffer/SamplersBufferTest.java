@@ -1,7 +1,9 @@
 package ru.loadtest.listeners.clickhouse.samplersbuffer;
 
 import org.apache.jmeter.samplers.SampleResult;
+import org.junit.Before;
 import org.junit.Test;
+import ru.loadtest.listeners.clickhouse.filter.ISamplersFilter;
 import ru.loadtest.listeners.clickhouse.filter.SamplersFilter;
 
 import java.util.ArrayList;
@@ -11,6 +13,14 @@ import static org.junit.Assert.assertEquals;
 
 public class SamplersBufferTest {
     private final int DEFAULT_SAMPLRES_QUANTITY = 5;
+    private ISamplersBuffer samplersBuffer;
+    private ISamplersFilter samplersFilter;
+
+    @Before
+    public void setUp() {
+        samplersFilter = new SamplersFilter();
+        samplersBuffer = new SamplersBuffer(samplersFilter, true);
+    }
 
     @Test
     public void checkNotMatchedWithRegexSamplersNotExistsInBuffer() {
@@ -23,11 +33,7 @@ public class SamplersBufferTest {
                 DEFAULT_SAMPLRES_QUANTITY,
                 "[TC] transaction controller"
         );
-        ISamplersBuffer samplersBuffer = new SamplersBuffer(
-                new SamplersFilter()
-                        .setFilterRegex(filterRegex),
-                true
-        );
+        samplersFilter.setFilterRegex(filterRegex);
         samplersBuffer.addSamplers(inputMatchedSamplers);
         samplersBuffer.addSamplers(inputNotMatchedSamplers);
         long matchedSamplersCount = samplersBuffer.getSampleResults()

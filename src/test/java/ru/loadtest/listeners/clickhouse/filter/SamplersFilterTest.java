@@ -1,6 +1,7 @@
 package ru.loadtest.listeners.clickhouse.filter;
 
 import org.apache.jmeter.samplers.SampleResult;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Set;
@@ -9,13 +10,19 @@ import static org.junit.Assert.*;
 
 public class SamplersFilterTest {
 
+    private ISamplersFilter samplersFilter;
+
+    @Before
+    public void setUp() {
+        samplersFilter = new SamplersFilter();
+    }
+
     @Test
     public void checkIsSamplerValidWhenItMathesWithFilterRegex() {
         String filterRegex = "^V.+";
         SampleResult validSampleResult = getSampleResultWithSampleLabel("Valid sample result");
         SampleResult notValidSampleResult = getSampleResultWithSampleLabel("Not valid sample result");
-        ISamplersFilter samplersFilter = new SamplersFilter()
-                .setFilterRegex(filterRegex);
+        samplersFilter.setFilterRegex(filterRegex);
         assertTrue(samplersFilter.isSamplerValid(validSampleResult));
         assertFalse(samplersFilter.isSamplerValid(notValidSampleResult));
     }
@@ -27,8 +34,7 @@ public class SamplersFilterTest {
                 oneOfSamlersToStoreLabels,
                 "Child sample result"
         );
-        ISamplersFilter samplersFilter = new SamplersFilter()
-                .setSamplersToStore(samplersToStore);
+        samplersFilter.setSamplersToStore(samplersToStore);
         SampleResult validSampleResult = getSampleResultWithSampleLabel(oneOfSamlersToStoreLabels);
         SampleResult notValidSampleResult = getSampleResultWithSampleLabel("Not valid sample result");
         assertTrue(samplersFilter.isSamplerValid(validSampleResult));
