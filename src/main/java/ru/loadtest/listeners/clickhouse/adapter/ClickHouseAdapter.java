@@ -2,8 +2,6 @@ package ru.loadtest.listeners.clickhouse.adapter;
 
 
 import org.apache.jmeter.samplers.SampleResult;
-import ru.loadtest.listeners.clickhouse.config.ClickHouseConfigV3;
-import ru.loadtest.listeners.clickhouse.config.ClickHousePluginGUIKeys;
 import ru.yandex.clickhouse.ClickHouseDataSource;
 import ru.yandex.clickhouse.settings.ClickHouseProperties;
 
@@ -14,7 +12,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ClickHouseAdapter implements IClickHouseDBAdapter {
@@ -22,10 +19,22 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
     private Connection connection;
     private String dbUrl;
     private boolean createDefinitions;
+    private String profileName;
+    private String runId;
+    private String recordDataLevel;
 
-    public ClickHouseAdapter(String dbUrl, boolean createDefinitions) {
+    public ClickHouseAdapter(
+            String dbUrl,
+            boolean createDefinitions,
+            String profileName,
+            String runId,
+            String recordDataLevel
+    ) {
         this.dbUrl = dbUrl;
         this.createDefinitions = createDefinitions;
+        this.profileName = profileName;
+        this.runId = runId;
+        this.recordDataLevel = recordDataLevel;
     }
 
     @Override
@@ -80,22 +89,21 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
     }
 
     @Override
-    public void flushBatchPoints(List<SampleResult> sampleResultList, ClickHouseConfigV3 config) {
+    public void flushBatchPoints(List<SampleResult> sampleResultList) {
         try {
             PreparedStatement point = connection.prepareStatement(getQueryForFlushBatchPoint());
-            Map<String, String> configParameters = config.getParameters();
             for (SampleResult sampleResult : sampleResultList) {
                 point.setTimestamp(1, new Timestamp(sampleResult.getTimeStamp()));
                 point.setLong(2, sampleResult.getTimeStamp());
-                point.setString(3, configParameters.get(ClickHousePluginGUIKeys.PROFILE_NAME.getStringKey()));
-                point.setString(4, configParameters.get(ClickHousePluginGUIKeys.RUN_ID.getStringKey()));
+                point.setString(3, profileName);
+                point.setString(4, runId);
                 point.setString(5, getHostname());
                 point.setString(6, sampleResult.getThreadName());
                 point.setString(7, sampleResult.getSampleLabel());
                 point.setInt(8, sampleResult.getSampleCount());
                 point.setInt(9, sampleResult.getErrorCount());
                 point.setDouble(10, sampleResult.getTime());
-                setFilteredRequestResponseData(point, configParameters, sampleResult);
+                setFilteredRequestResponseData(point, sampleResult);
                 point.setString(13, sampleResult.getResponseCode());
                 point.addBatch();
             }
@@ -106,10 +114,9 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
     }
 
     @Override
-    public void flushAggregatedBatchPoints(List<SampleResult> sampleResultList, ClickHouseConfigV3 config) {
+    public void flushAggregatedBatchPoints(List<SampleResult> sampleResultList) {
         try {
             PreparedStatement point = connection.prepareStatement(getQueryForFlushBatchPoint());
-            Map<String, String> configParameters = config.getParameters();
             List<AggregatedSampeResult> aggregatedSampleResults = sampleResultList.stream()
                     .collect(
                             Collectors.groupingBy(
@@ -137,8 +144,8 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
                 long currentTimeInMillis = System.currentTimeMillis();
                 point.setTimestamp(1, new Timestamp(currentTimeInMillis));
                 point.setLong(2, currentTimeInMillis);
-                point.setString(3, configParameters.get(ClickHousePluginGUIKeys.PROFILE_NAME.getStringKey()));
-                point.setString(4, configParameters.get(ClickHousePluginGUIKeys.RUN_ID.getStringKey()));
+                point.setString(3, profileName);
+                point.setString(4, runId);
                 point.setString(5, getHostname());
                 point.setString(6, sampeResult.getThreadName());
                 point.setString(7, sampeResult.getSampleLabel());
@@ -159,12 +166,11 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
 
     private void setFilteredRequestResponseData(
             PreparedStatement point,
-            Map<String, String> configParameters,
             SampleResult sampleResult
     ) throws SQLException {
         String samplerRequest = sampleResult.getSamplerData();
         String samplerResponse = sampleResult.getResponseDataAsString();
-        switch (configParameters.get(ClickHousePluginGUIKeys.RECORD_DATA_LEVEL.getStringKey())) {
+        switch (recordDataLevel) {
             case "aggregate":
             case "info":
                 samplerRequest = "";
