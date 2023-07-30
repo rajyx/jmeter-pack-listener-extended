@@ -138,8 +138,7 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
                             entry -> entry.getValue()
                                     .setSampleLabel(entry.getKey().getSamplerLabel())
                                     .setThreadName(entry.getKey().getThreadName())
-                    )
-                    .toList();
+                    ).collect(Collectors.toList());
             for (AggregatedSampeResult sampeResult : aggregatedSampleResults) {
                 long currentTimeInMillis = System.currentTimeMillis();
                 point.setTimestamp(1, new Timestamp(currentTimeInMillis));
