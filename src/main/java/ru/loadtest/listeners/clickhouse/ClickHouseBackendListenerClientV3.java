@@ -61,10 +61,10 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
         LOGGER.info("Shutting down clickHouse scheduler...");
         String recordDataLevel = clickHouseConfig.getParameters().get(ClickHousePluginGUIKeys.RECORD_DATA_LEVEL.getStringKey());
         if (recordDataLevel.equals("aggregate")) {
-            clickHouseDBAdapter.flushAggregatedBatchPoints(samplersBuffer.getSampleResults(), clickHouseConfig);
+            clickHouseDBAdapter.flushAggregatedBatchPoints(samplersBuffer.getSampleResults());
             samplersBuffer.clearBuffer();
         } else {
-            clickHouseDBAdapter.flushBatchPoints(samplersBuffer.getSampleResults(), clickHouseConfig);
+            clickHouseDBAdapter.flushBatchPoints(samplersBuffer.getSampleResults());
             samplersBuffer.clearBuffer();
         }
 
@@ -82,10 +82,10 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
                 recordDataLevel.equals("aggregate")
                         && samplersBuffer.getSampleResults().size() >= groupByCount * batchSize
         ) {
-            clickHouseDBAdapter.flushAggregatedBatchPoints(samplersBuffer.getSampleResults(), clickHouseConfig);
+            clickHouseDBAdapter.flushAggregatedBatchPoints(samplersBuffer.getSampleResults());
             samplersBuffer.clearBuffer();
         } else if (samplersBuffer.getSampleResults().size() >= batchSize) {
-            clickHouseDBAdapter.flushBatchPoints(samplersBuffer.getSampleResults(), clickHouseConfig);
+            clickHouseDBAdapter.flushBatchPoints(samplersBuffer.getSampleResults());
             samplersBuffer.clearBuffer();
         }
     }
@@ -103,7 +103,10 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
                 configParameters.get(ClickHousePluginGUIKeys.URL.getStringKey()),
                 Boolean.parseBoolean(
                         configParameters.get(ClickHousePluginGUIKeys.CREATE_DEFINITIONS.getStringKey())
-                )
+                ),
+                configParameters.get(ClickHousePluginGUIKeys.PROFILE_NAME.getStringKey()),
+                configParameters.get(ClickHousePluginGUIKeys.RUN_ID.getStringKey()),
+                configParameters.get(ClickHousePluginGUIKeys.RECORD_DATA_LEVEL.getStringKey())
         );
         clickHouseDBAdapter.prepareConnection(properties);
     }

@@ -22,7 +22,8 @@ public class CustomSamplerPair {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof CustomSamplerPair that)) return false;
+        if (!(o instanceof CustomSamplerPair)) return false;
+        CustomSamplerPair that = (CustomSamplerPair) o;
         return Objects.equals(threadName, that.threadName) && Objects.equals(samplerLabel, that.samplerLabel);
     }
 
