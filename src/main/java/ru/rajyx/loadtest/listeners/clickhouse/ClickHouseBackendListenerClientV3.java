@@ -1,4 +1,4 @@
-package ru.loadtest.listeners.clickhouse;
+package ru.rajyx.loadtest.listeners.clickhouse;
 
 import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.samplers.SampleResult;
@@ -6,14 +6,14 @@ import org.apache.jmeter.visualizers.backend.AbstractBackendListenerClient;
 import org.apache.jmeter.visualizers.backend.BackendListenerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.loadtest.listeners.clickhouse.adapter.ClickHouseAdapter;
-import ru.loadtest.listeners.clickhouse.adapter.IClickHouseDBAdapter;
-import ru.loadtest.listeners.clickhouse.config.ClickHouseConfigV3;
-import ru.loadtest.listeners.clickhouse.config.ClickHousePluginGUIKeys;
-import ru.loadtest.listeners.clickhouse.filter.ISamplersFilter;
-import ru.loadtest.listeners.clickhouse.filter.SamplersFilter;
-import ru.loadtest.listeners.clickhouse.samplersbuffer.ISamplersBuffer;
-import ru.loadtest.listeners.clickhouse.samplersbuffer.SamplersBuffer;
+import ru.rajyx.loadtest.listeners.clickhouse.adapter.ClickHouseAdapter;
+import ru.rajyx.loadtest.listeners.clickhouse.adapter.IClickHouseDBAdapter;
+import ru.rajyx.loadtest.listeners.clickhouse.config.ClickHouseConfigV3;
+import ru.rajyx.loadtest.listeners.clickhouse.config.ClickHousePluginGUIKeys;
+import ru.rajyx.loadtest.listeners.clickhouse.filter.ISamplersFilter;
+import ru.rajyx.loadtest.listeners.clickhouse.filter.SamplersFilter;
+import ru.rajyx.loadtest.listeners.clickhouse.samplersbuffer.ISamplersBuffer;
+import ru.rajyx.loadtest.listeners.clickhouse.samplersbuffer.SamplersBuffer;
 import ru.yandex.clickhouse.settings.ClickHouseProperties;
 
 import java.util.Arrays;

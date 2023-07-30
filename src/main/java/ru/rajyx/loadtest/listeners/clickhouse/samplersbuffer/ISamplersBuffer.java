@@ -1,4 +1,4 @@
-package ru.loadtest.listeners.clickhouse.samplersbuffer;
+package ru.rajyx.loadtest.listeners.clickhouse.samplersbuffer;
 
 import org.apache.jmeter.samplers.SampleResult;
 

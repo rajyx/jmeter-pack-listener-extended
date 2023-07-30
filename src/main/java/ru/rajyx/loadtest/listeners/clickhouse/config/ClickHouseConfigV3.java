@@ -1,4 +1,4 @@
-package ru.loadtest.listeners.clickhouse.config;
+package ru.rajyx.loadtest.listeners.clickhouse.config;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.visualizers.backend.BackendListenerContext;
