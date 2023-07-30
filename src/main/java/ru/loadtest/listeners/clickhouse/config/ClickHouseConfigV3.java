@@ -39,7 +39,7 @@ public class ClickHouseConfigV3 {
                     ) {
                         throw new IllegalArgumentException(keyStringValue + " must not be empty");
                     }
-                    parameters.put(keyStringValue, context.getParameter(keyStringValue));
+                    parameters.put(keyStringValue, contextParameterValue);
                 }
         );
     }
