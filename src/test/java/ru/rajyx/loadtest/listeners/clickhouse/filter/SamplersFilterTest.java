@@ -1,4 +1,4 @@
-package ru.loadtest.listeners.clickhouse.filter;
+package ru.rajyx.loadtest.listeners.clickhouse.filter;
 
 import org.apache.jmeter.samplers.SampleResult;
 import org.junit.Before;

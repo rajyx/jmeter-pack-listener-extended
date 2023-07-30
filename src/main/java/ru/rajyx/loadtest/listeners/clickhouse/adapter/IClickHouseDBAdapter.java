@@ -1,4 +1,4 @@
-package ru.loadtest.listeners.clickhouse.adapter;
+package ru.rajyx.loadtest.listeners.clickhouse.adapter;
 
 import org.apache.jmeter.samplers.SampleResult;
 import ru.yandex.clickhouse.settings.ClickHouseProperties;

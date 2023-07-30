@@ -1,10 +1,10 @@
-package ru.loadtest.listeners.clickhouse.samplersbuffer;
+package ru.rajyx.loadtest.listeners.clickhouse.samplersbuffer;
 
 import org.apache.jmeter.samplers.SampleResult;
 import org.junit.Before;
 import org.junit.Test;
-import ru.loadtest.listeners.clickhouse.filter.ISamplersFilter;
-import ru.loadtest.listeners.clickhouse.filter.SamplersFilter;
+import ru.rajyx.loadtest.listeners.clickhouse.filter.ISamplersFilter;
+import ru.rajyx.loadtest.listeners.clickhouse.filter.SamplersFilter;
 
 import java.util.ArrayList;
 import java.util.List;

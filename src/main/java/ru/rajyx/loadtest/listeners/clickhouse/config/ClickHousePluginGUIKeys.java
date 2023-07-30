@@ -1,4 +1,4 @@
-package ru.loadtest.listeners.clickhouse.config;
+package ru.rajyx.loadtest.listeners.clickhouse.config;
 
 public enum ClickHousePluginGUIKeys {
     PROFILE_NAME("profileName", "TEST"),
