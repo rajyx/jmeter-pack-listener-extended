@@ -10,7 +10,6 @@ import ru.rajyx.loadtest.listeners.clickhouse.filter.SamplersFilter;
 import java.util.List;
 
 public class SamplersBufferTest {
-    private final int DEFAULT_SAMPLRES_QUANTITY = 5;
     private ISamplersBuffer subSamplersRecordingBuffer;
     private ISamplersBuffer noSubSamplersRecordingBuffer;
     private ISamplersFilter samplersFilter;
