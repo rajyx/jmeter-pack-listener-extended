@@ -29,13 +29,13 @@ public class SamplersFilterTest {
 
     @Test
     public void checkIsSamplerValidTrueWhenItContainsInSamplersToStore() {
-        String oneOfSamlersToStoreLabels = "Sample result";
+        String oneOfSamplesToStoreLabels = "Sample result";
         Set<String> samplersToStore = Set.of(
-                oneOfSamlersToStoreLabels,
+                oneOfSamplesToStoreLabels,
                 "Child sample result"
         );
         samplersFilter.setSamplersToStore(samplersToStore);
-        SampleResult validSampleResult = getSampleResultWithSampleLabel(oneOfSamlersToStoreLabels);
+        SampleResult validSampleResult = getSampleResultWithSampleLabel(oneOfSamplesToStoreLabels);
         SampleResult notValidSampleResult = getSampleResultWithSampleLabel("Not valid sample result");
         assertTrue(samplersFilter.isSamplerValid(validSampleResult));
         assertFalse(samplersFilter.isSamplerValid(notValidSampleResult));
