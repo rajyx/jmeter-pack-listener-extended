@@ -1,61 +1,50 @@
 package ru.rajyx.loadtest.listeners.clickhouse.samplersbuffer;
 
 import org.apache.jmeter.samplers.SampleResult;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import ru.rajyx.loadtest.listeners.clickhouse.filter.ISamplersFilter;
 import ru.rajyx.loadtest.listeners.clickhouse.filter.SamplersFilter;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
 
 public class SamplersBufferTest {
     private final int DEFAULT_SAMPLRES_QUANTITY = 5;
-    private ISamplersBuffer samplersBuffer;
+    private ISamplersBuffer subSamplersRecordingBuffer;
+    private ISamplersBuffer noSubSamplersRecordingBuffer;
     private ISamplersFilter samplersFilter;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         samplersFilter = new SamplersFilter();
-        samplersBuffer = new SamplersBuffer(samplersFilter, true);
+        samplersFilter.setFilterRegex(".*");
+        subSamplersRecordingBuffer = new SamplersBuffer(samplersFilter, true);
+        noSubSamplersRecordingBuffer = new SamplersBuffer(samplersFilter, false);
     }
 
     @Test
-    public void checkNotMatchedWithRegexSamplersNotExistsInBuffer() {
-        String filterRegex = "\\[HR\\].+";
-        List<SampleResult> inputMatchedSamplers = getSampleResultsInQuantityWithNamePrefix(
-                DEFAULT_SAMPLRES_QUANTITY,
-                "[HR] http request sampler"
-        );
-        List<SampleResult> inputNotMatchedSamplers = getSampleResultsInQuantityWithNamePrefix(
-                DEFAULT_SAMPLRES_QUANTITY,
-                "[TC] transaction controller"
-        );
-        samplersFilter.setFilterRegex(filterRegex);
-        samplersBuffer.addSamplers(inputMatchedSamplers);
-        samplersBuffer.addSamplers(inputNotMatchedSamplers);
-        long matchedSamplersCount = samplersBuffer.getSampleResults()
-                .stream()
-                .filter(sampler -> sampler.getSampleLabel().matches(filterRegex))
-                .count();
-        assertEquals(
-                "Input matched with regex samplers quantity not equals existed samplers in buffer quantity",
-                DEFAULT_SAMPLRES_QUANTITY,
-                matchedSamplersCount
-        );
+    public void addSamplers_checkAllSubSamplersInBufferWhenRecordSubSamplersFlagEnabled() {
+        int subSamplerLevel = 3;
+        SampleResult sampleResult = prepareSampleResultWithChild(subSamplerLevel);
+        subSamplersRecordingBuffer.addSamplers(List.of(sampleResult));
+        Assertions.assertEquals(subSamplerLevel, subSamplersRecordingBuffer.getSampleResults().size());
     }
 
-    private List<SampleResult> getSampleResultsInQuantityWithNamePrefix(int quantity, String samplerPrefix) {
-        int defaultSampleElapsed = 200;
-        List<SampleResult> sampleResults = new ArrayList<>();
-        for (int i = 0; i < quantity; i++) {
-            SampleResult sampleResult = new SampleResult(System.currentTimeMillis(), defaultSampleElapsed);
-            sampleResult.setSampleLabel(samplerPrefix + i);
-            sampleResult.setSuccessful(true);
-            sampleResults.add(sampleResult);
+    @Test
+    public void addSamplers_checkNoSubSamplersInBufferIfRecordFlagDisabled() {
+        int subSamplerLevel = 3;
+        SampleResult sampleResult = prepareSampleResultWithChild(subSamplerLevel);
+        noSubSamplersRecordingBuffer.addSamplers(List.of(sampleResult));
+        Assertions.assertEquals(1, noSubSamplersRecordingBuffer.getSampleResults().size());
+    }
+
+    private SampleResult prepareSampleResultWithChild(int subLevel) {
+        SampleResult sample = new SampleResult(System.currentTimeMillis(), 200);
+        sample.setSampleLabel("sample");
+        if (subLevel > 1) {
+            sample.addSubResult(prepareSampleResultWithChild(subLevel - 1));
         }
-        return sampleResults;
+        return sample;
     }
 }
