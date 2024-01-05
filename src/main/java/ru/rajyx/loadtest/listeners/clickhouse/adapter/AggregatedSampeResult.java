@@ -7,8 +7,8 @@ public class AggregatedSampeResult {
     private String sampleLabel;
     private int pointCount;
 
-    public AggregatedSampeResult setErrosCount(int errosCount) {
-        this.errosCount = errosCount;
+    public AggregatedSampeResult setErrorsCount(int errorsCount) {
+        this.errosCount = errorsCount;
         return this;
     }
 

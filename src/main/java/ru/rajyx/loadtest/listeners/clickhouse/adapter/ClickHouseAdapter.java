@@ -128,7 +128,7 @@ public class ClickHouseAdapter implements IClickHouseDBAdapter {
                                                 return new AggregatedSampeResult()
                                                         .setPointCount(count)
                                                         .setAverageTime((long) average)
-                                                        .setErrosCount(errorsCount);
+                                                        .setErrorsCount(errorsCount);
                                             }
                                     )
                             )
