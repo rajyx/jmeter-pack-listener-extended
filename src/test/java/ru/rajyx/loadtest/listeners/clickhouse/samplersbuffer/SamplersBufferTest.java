@@ -3,6 +3,7 @@ package ru.rajyx.loadtest.listeners.clickhouse.samplersbuffer;
 import org.apache.jmeter.samplers.SampleResult;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,6 +73,21 @@ public class SamplersBufferTest {
                 parentSamplesQuantity,
                 noSubSamplersRecordingBuffer.getSampleResults().size()
         );
+    }
+
+    @Test
+    public void clearBuffer_checkThereAreNoSamplesAfterClearBufferExecution() {
+        int samplesQuantity = 200;
+        int defaultElapsedTime = 200;
+        subSamplersRecordingBuffer.addSamplers(
+                Stream.generate(
+                                () -> new SampleResult(System.currentTimeMillis(), defaultElapsedTime)
+                        )
+                        .limit(samplesQuantity)
+                        .collect(Collectors.toList())
+        );
+        subSamplersRecordingBuffer.clearBuffer();
+        assertTrue(subSamplersRecordingBuffer.getSampleResults().isEmpty());
     }
 
     private SampleResult prepareSampleResultWithChild(int subLevel) {
