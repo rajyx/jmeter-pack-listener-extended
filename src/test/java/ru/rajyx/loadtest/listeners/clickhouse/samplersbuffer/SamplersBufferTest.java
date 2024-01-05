@@ -1,13 +1,17 @@
 package ru.rajyx.loadtest.listeners.clickhouse.samplersbuffer;
 
 import org.apache.jmeter.samplers.SampleResult;
-import org.junit.jupiter.api.Assertions;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.rajyx.loadtest.listeners.clickhouse.filter.ISamplersFilter;
 import ru.rajyx.loadtest.listeners.clickhouse.filter.SamplersFilter;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class SamplersBufferTest {
     private ISamplersBuffer subSamplersRecordingBuffer;
@@ -27,7 +31,7 @@ public class SamplersBufferTest {
         int subSamplerLevel = 3;
         SampleResult sampleResult = prepareSampleResultWithChild(subSamplerLevel);
         subSamplersRecordingBuffer.addSamplers(List.of(sampleResult));
-        Assertions.assertEquals(subSamplerLevel, subSamplersRecordingBuffer.getSampleResults().size());
+        assertEquals(subSamplerLevel, subSamplersRecordingBuffer.getSampleResults().size());
     }
 
     @Test
@@ -35,7 +39,39 @@ public class SamplersBufferTest {
         int subSamplerLevel = 3;
         SampleResult sampleResult = prepareSampleResultWithChild(subSamplerLevel);
         noSubSamplersRecordingBuffer.addSamplers(List.of(sampleResult));
-        Assertions.assertEquals(1, noSubSamplersRecordingBuffer.getSampleResults().size());
+        assertEquals(1, noSubSamplersRecordingBuffer.getSampleResults().size());
+    }
+
+    @Test
+    public void getSampleResults_checkRecordingSubSamplesBufferReturnsSampleResultsInQuantityWithChildren() {
+        int parentSamplesQuantity = 200;
+        int childSamplesLevel = 2;
+        List<SampleResult> sampleResults = Stream.generate(
+                        () -> prepareSampleResultWithChild(childSamplesLevel)
+                )
+                .limit(parentSamplesQuantity)
+                .collect(Collectors.toList());
+        subSamplersRecordingBuffer.addSamplers(sampleResults);
+        assertEquals(
+                parentSamplesQuantity * childSamplesLevel,
+                subSamplersRecordingBuffer.getSampleResults().size()
+        );
+    }
+
+    @Test
+    public void getSampleResults_checkNoRecordingSubSamplesBufferReturnsSampleResultsInQuantityWithOutChildren() {
+        int parentSamplesQuantity = 200;
+        int childSamplesLevel = 2;
+        List<SampleResult> sampleResults = Stream.generate(
+                        () -> prepareSampleResultWithChild(childSamplesLevel)
+                )
+                .limit(parentSamplesQuantity)
+                .collect(Collectors.toList());
+        noSubSamplersRecordingBuffer.addSamplers(sampleResults);
+        assertEquals(
+                parentSamplesQuantity,
+                noSubSamplersRecordingBuffer.getSampleResults().size()
+        );
     }
 
     private SampleResult prepareSampleResultWithChild(int subLevel) {
