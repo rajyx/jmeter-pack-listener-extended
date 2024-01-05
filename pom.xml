@@ -28,6 +28,7 @@
         <junit.version>5.10.1</junit.version>
         <org.apache.jmeter.version>5.1</org.apache.jmeter.version>
         <org.apache.commons>3.7</org.apache.commons>
+        <mockito.version>5.8.0</mockito.version>
     </properties>
 
     <dependencies>
@@ -76,6 +77,18 @@
             <artifactId>commons-lang3</artifactId>
             <version>${org.apache.commons}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
