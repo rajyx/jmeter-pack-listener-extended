@@ -5,7 +5,7 @@ import ru.yandex.clickhouse.settings.ClickHouseProperties;
 
 import java.util.List;
 
-public interface IClickHouseDBAdapter {
+public interface IClickHouseDBAdapterOLD {
 
     void prepareConnection(ClickHouseProperties properties);
 

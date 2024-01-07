@@ -6,16 +6,20 @@ import org.apache.jmeter.visualizers.backend.AbstractBackendListenerClient;
 import org.apache.jmeter.visualizers.backend.BackendListenerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.rajyx.loadtest.listeners.clickhouse.adapter.ClickHouseAdapter;
-import ru.rajyx.loadtest.listeners.clickhouse.adapter.IClickHouseDBAdapter;
+import ru.rajyx.loadtest.listeners.clickhouse.adapter.*;
 import ru.rajyx.loadtest.listeners.clickhouse.config.ClickHouseConfigV3;
 import ru.rajyx.loadtest.listeners.clickhouse.config.ClickHousePluginGUIKeys;
 import ru.rajyx.loadtest.listeners.clickhouse.filter.ISamplersFilter;
 import ru.rajyx.loadtest.listeners.clickhouse.filter.SamplersFilter;
 import ru.rajyx.loadtest.listeners.clickhouse.samplersbuffer.ISamplersBuffer;
 import ru.rajyx.loadtest.listeners.clickhouse.samplersbuffer.SamplersBuffer;
+import ru.yandex.clickhouse.ClickHouseDataSource;
 import ru.yandex.clickhouse.settings.ClickHouseProperties;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.net.UnknownHostException;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +30,9 @@ import java.util.stream.Collectors;
 
 public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerClient implements Runnable {
     protected ClickHouseConfigV3 clickHouseConfig;
-    protected IClickHouseDBAdapter clickHouseDBAdapter;
+    protected IClickHouseBatchSender clickHouseBatchSender;
+    protected IClickhouseDBAdapter clickhouseDBAdapter;
+    protected IDBCreator dbCreator;
 
     protected ISamplersBuffer samplersBuffer;
     private ScheduledExecutorService scheduler;
@@ -61,10 +67,10 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
         LOGGER.info("Shutting down clickHouse scheduler...");
         String recordDataLevel = clickHouseConfig.getParameters().get(ClickHousePluginGUIKeys.RECORD_DATA_LEVEL.getStringKey());
         if (recordDataLevel.equals("aggregate")) {
-            clickHouseDBAdapter.flushAggregatedBatchPoints(samplersBuffer.getSampleResults());
+            clickHouseBatchSender.flushAggregatedBatchPoints(samplersBuffer.getSampleResults());
             samplersBuffer.clearBuffer();
         } else {
-            clickHouseDBAdapter.flushBatchPoints(samplersBuffer.getSampleResults());
+            clickHouseBatchSender.flushBatchPoints(samplersBuffer.getSampleResults());
             samplersBuffer.clearBuffer();
         }
 
@@ -78,15 +84,19 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
         String recordDataLevel = configParameters.get(ClickHousePluginGUIKeys.RECORD_DATA_LEVEL.getStringKey());
         int groupByCount = Integer.parseInt(configParameters.get(ClickHousePluginGUIKeys.GROUP_BY_COUNT.getStringKey()));
         int batchSize = Integer.parseInt(configParameters.get(ClickHousePluginGUIKeys.BATCH_SIZE.getStringKey()));
-        if (
-                recordDataLevel.equals("aggregate")
-                        && samplersBuffer.getSampleResults().size() >= groupByCount * batchSize
-        ) {
-            clickHouseDBAdapter.flushAggregatedBatchPoints(samplersBuffer.getSampleResults());
-            samplersBuffer.clearBuffer();
-        } else if (samplersBuffer.getSampleResults().size() >= batchSize) {
-            clickHouseDBAdapter.flushBatchPoints(samplersBuffer.getSampleResults());
-            samplersBuffer.clearBuffer();
+        try {
+            if (
+                    recordDataLevel.equals("aggregate")
+                            && samplersBuffer.getSampleResults().size() >= groupByCount * batchSize
+            ) {
+                clickHouseBatchSender.flushAggregatedBatchPoints(samplersBuffer.getSampleResults());
+                samplersBuffer.clearBuffer();
+            } else if (samplersBuffer.getSampleResults().size() >= batchSize) {
+                clickHouseBatchSender.flushBatchPoints(samplersBuffer.getSampleResults());
+                samplersBuffer.clearBuffer();
+            }
+        } catch (UnknownHostException | SQLException e) {
+            sendStackTraceToLogs(e);
         }
     }
 
@@ -99,16 +109,32 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
         properties.setPassword(configParameters.get(ClickHousePluginGUIKeys.PASSWORD.getStringKey()));
         properties.setConnectionTimeout(Integer.parseInt(configParameters.get(ClickHousePluginGUIKeys.CONNECT_TIMEOUT.getStringKey())));
         properties.setSocketTimeout(Integer.parseInt(configParameters.get(ClickHousePluginGUIKeys.CONNECT_TIMEOUT.getStringKey())));
-        clickHouseDBAdapter = new ClickHouseAdapter(
-                configParameters.get(ClickHousePluginGUIKeys.URL.getStringKey()),
-                Boolean.parseBoolean(
-                        configParameters.get(ClickHousePluginGUIKeys.CREATE_DEFINITIONS.getStringKey())
-                ),
-                configParameters.get(ClickHousePluginGUIKeys.PROFILE_NAME.getStringKey()),
-                configParameters.get(ClickHousePluginGUIKeys.RUN_ID.getStringKey()),
-                configParameters.get(ClickHousePluginGUIKeys.RECORD_DATA_LEVEL.getStringKey())
+        String dbUrl = configParameters.get(ClickHousePluginGUIKeys.URL.getStringKey());
+        ClickHouseDataSource clickHouseDataSource = new ClickHouseDataSource(
+                "jdbc:clickhouse://" + dbUrl,
+                properties
         );
-        clickHouseDBAdapter.prepareConnection(properties);
+        dbCreator = new DBCreator(dbUrl);
+        try {
+            clickhouseDBAdapter = new ClickHouseAdapter(
+                    clickHouseDataSource.getConnection(),
+                    configParameters.get(ClickHousePluginGUIKeys.PROFILE_NAME.getStringKey()),
+                    configParameters.get(ClickHousePluginGUIKeys.RUN_ID.getStringKey()),
+                    configParameters.get(ClickHousePluginGUIKeys.RECORD_DATA_LEVEL.getStringKey()),
+                    dbCreator
+            );
+            boolean createDefinition = Boolean.parseBoolean(
+                    configParameters.get(
+                            ClickHousePluginGUIKeys.CREATE_DEFINITIONS.getStringKey()
+                    )
+            );
+            if (createDefinition) {
+                clickhouseDBAdapter.setUpDB(properties);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        clickHouseBatchSender = new ClickHouseBatchSender(clickhouseDBAdapter);
     }
 
     private ISamplersFilter getSamplersFilter() {
@@ -130,6 +156,13 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
                                 samplersList.split(SAMPLERS_SEPARATOR)
                         ).collect(Collectors.toSet())
                 );
+    }
+
+    private void sendStackTraceToLogs(Exception e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        LOGGER.error(sw.toString());
     }
 
     @Override
