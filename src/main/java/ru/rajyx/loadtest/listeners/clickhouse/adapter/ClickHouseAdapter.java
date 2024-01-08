@@ -1,6 +1,7 @@
 package ru.rajyx.loadtest.listeners.clickhouse.adapter;
 
 import org.apache.jmeter.samplers.SampleResult;
+import ru.rajyx.loadtest.listeners.clickhouse.utils.HostUtils;
 import ru.yandex.clickhouse.settings.ClickHouseProperties;
 
 import java.net.InetAddress;
@@ -45,7 +46,7 @@ public class ClickHouseAdapter implements IClickhouseDBAdapter {
             point.setLong(2, sampleResult.getTimeStamp());
             point.setString(3, profileName);
             point.setString(4, runId);
-            point.setString(5, getHostname());
+            point.setString(5, HostUtils.getHostname());
             point.setString(6, sampleResult.getThreadName());
             point.setString(7, sampleResult.getSampleLabel());
             point.setInt(8, sampleResult.getSampleCount());
@@ -103,11 +104,5 @@ public class ClickHouseAdapter implements IClickhouseDBAdapter {
                 "res_code" +
                 ")" +
                 " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
-    }
-
-    private String getHostname() throws UnknownHostException {
-        InetAddress iAddress = InetAddress.getLocalHost();
-        String hostName = iAddress.getHostName();
-        return hostName;
     }
 }
