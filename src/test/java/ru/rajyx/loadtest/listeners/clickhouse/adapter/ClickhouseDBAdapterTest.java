@@ -20,7 +20,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-class IClickhouseDBAdapterTest {
+class ClickhouseDBAdapterTest {
 
     @Mock
     private IDBSetUpper dbCreator;

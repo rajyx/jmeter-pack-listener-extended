@@ -13,11 +13,11 @@ import java.sql.SQLException;
 import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
-class IClickHouseBatchSenderTest {
+class ClickHouseBatchSenderTest {
 
     @Mock
     private IClickhouseDBAdapter adapter;
-    private IClickHouseBatchSender batchSender;
+    private ClickHouseBatchSender batchSender;
 
     @BeforeEach
     public void setUp() {
