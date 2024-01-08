@@ -24,6 +24,9 @@ class IClickhouseDBAdapterTest {
 
     @Mock
     private ClickHouseProperties properties;
+    private final String PROFILE = "profile";
+    private final String RECORD_DATA_LEVEL = "info";
+    private final String RUN_ID = "123";
 
     private IClickhouseDBAdapter adapter;
 
@@ -31,9 +34,9 @@ class IClickhouseDBAdapterTest {
     public void setUp() {
         adapter = new ClickHouseAdapter(
                 connection,
-                "profile",
-                "123",
-                "info",
+                PROFILE,
+                RUN_ID,
+                RECORD_DATA_LEVEL,
                 dbCreator
         );
         System.out.println(connection);
@@ -47,6 +50,7 @@ class IClickhouseDBAdapterTest {
 
     @Test
     void sendBatch() {
+
         assertEquals(1, 1);
     }
 }
