@@ -1,8 +1,8 @@
 package ru.rajyx.loadtest.listeners.clickhouse.filter;
 
 import org.apache.jmeter.samplers.SampleResult;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
@@ -12,7 +12,7 @@ public class SamplersFilterTest {
 
     private ISamplersFilter samplersFilter;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         samplersFilter = new SamplersFilter();
     }
