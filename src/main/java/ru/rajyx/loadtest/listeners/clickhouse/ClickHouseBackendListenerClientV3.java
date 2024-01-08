@@ -114,7 +114,7 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
                 "jdbc:clickhouse://" + dbUrl,
                 properties
         );
-        dbCreator = new DBCreator(dbUrl);
+        dbCreator = new DBCreator(clickHouseDataSource);
         try {
             clickhouseDBAdapter = new ClickHouseAdapter(
                     clickHouseDataSource.getConnection(),
@@ -129,7 +129,7 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
                     )
             );
             if (createDefinition) {
-                clickhouseDBAdapter.setUpDB(properties);
+                clickhouseDBAdapter.setUpDB();
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);

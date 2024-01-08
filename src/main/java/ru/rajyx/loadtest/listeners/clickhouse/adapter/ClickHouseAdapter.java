@@ -2,7 +2,6 @@ package ru.rajyx.loadtest.listeners.clickhouse.adapter;
 
 import org.apache.jmeter.samplers.SampleResult;
 import ru.rajyx.loadtest.listeners.clickhouse.utils.HostUtils;
-import ru.yandex.clickhouse.settings.ClickHouseProperties;
 
 import java.net.UnknownHostException;
 import java.sql.Connection;
@@ -33,8 +32,8 @@ public class ClickHouseAdapter implements IClickhouseDBAdapter {
     }
 
     @Override
-    public void setUpDB(ClickHouseProperties properties) throws SQLException {
-        dbCreator.setUpDB(properties);
+    public void setUpDB() throws SQLException {
+        dbCreator.setUpDB();
     }
 
     @Override

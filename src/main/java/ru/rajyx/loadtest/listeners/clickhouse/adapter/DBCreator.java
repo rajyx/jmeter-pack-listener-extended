@@ -8,27 +8,26 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class DBCreator implements IDBCreator {
-    private String dbUrl;
+    private ClickHouseDataSource dataSource;
 
-    public DBCreator(String dbUrl) {
-        this.dbUrl = dbUrl;
+    public DBCreator(ClickHouseDataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Override
-    public void setUpDB(ClickHouseProperties properties) throws SQLException {
-        String dbName = properties.getDatabase();
+    public void setUpDB() throws SQLException {
+        String dbName = dataSource.getDatabase();
+        ClickHouseProperties properties = dataSource.getProperties();
         properties.setDatabase("");
-        ClickHouseDataSource dataSource = new ClickHouseDataSource(
-                "jdbc:clickhouse://" + dbUrl,
-                properties
-        );
         Connection connection = dataSource.getConnection();
-        for (String query : List.of(
+        for (
+                String query : List.of(
                 "create database IF NOT EXISTS " + dbName,
                 getQueryToCreateDataTable(dbName),
                 getQueryToCreateStatView(dbName),
                 getQueryToCreateBufferTable(dbName)
-        )) {
+        )
+        ) {
             connection.createStatement().execute(query);
         }
         connection.close();

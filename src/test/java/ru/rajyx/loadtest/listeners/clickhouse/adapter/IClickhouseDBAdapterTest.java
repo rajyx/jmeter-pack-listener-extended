@@ -55,8 +55,8 @@ class IClickhouseDBAdapterTest {
                 "info",
                 dbCreator
         )
-                .setUpDB(properties);
-        Mockito.verify(dbCreator).setUpDB(properties);
+                .setUpDB();
+        Mockito.verify(dbCreator).setUpDB();
     }
 
     @Test
