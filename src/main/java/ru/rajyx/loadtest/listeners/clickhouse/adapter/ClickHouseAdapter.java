@@ -15,14 +15,14 @@ public class ClickHouseAdapter implements IClickhouseDBAdapter {
     private String profileName;
     private String runId;
     private String recordDataLevel;
-    private IDBCreator dbCreator;
+    private IDBSetUpper dbCreator;
 
     public ClickHouseAdapter(
             Connection connection,
             String profileName,
             String runId,
             String recordDataLevel,
-            IDBCreator dbCreator
+            IDBSetUpper dbCreator
     ) {
         this.connection = connection;
         this.profileName = profileName;

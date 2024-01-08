@@ -7,10 +7,10 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-public class DBCreator implements IDBCreator {
+public class DBSetUpper implements IDBSetUpper {
     private ClickHouseDataSource dataSource;
 
-    public DBCreator(ClickHouseDataSource dataSource) {
+    public DBSetUpper(ClickHouseDataSource dataSource) {
         this.dataSource = dataSource;
     }
 

@@ -32,7 +32,7 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
     protected ClickHouseConfigV3 clickHouseConfig;
     protected IClickHouseBatchSender clickHouseBatchSender;
     protected IClickhouseDBAdapter clickhouseDBAdapter;
-    protected IDBCreator dbCreator;
+    protected IDBSetUpper dbCreator;
 
     protected ISamplersBuffer samplersBuffer;
     private ScheduledExecutorService scheduler;
@@ -114,7 +114,7 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
                 "jdbc:clickhouse://" + dbUrl,
                 properties
         );
-        dbCreator = new DBCreator(clickHouseDataSource);
+        dbCreator = new DBSetUpper(clickHouseDataSource);
         try {
             clickhouseDBAdapter = new ClickHouseAdapter(
                     clickHouseDataSource.getConnection(),
