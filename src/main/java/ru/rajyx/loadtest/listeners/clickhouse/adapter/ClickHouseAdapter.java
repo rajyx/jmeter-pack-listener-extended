@@ -4,7 +4,6 @@ import org.apache.jmeter.samplers.SampleResult;
 import ru.rajyx.loadtest.listeners.clickhouse.utils.HostUtils;
 import ru.yandex.clickhouse.settings.ClickHouseProperties;
 
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
