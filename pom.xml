@@ -4,7 +4,7 @@
 
     <groupId>ru.rajyx.loadtest.listeners</groupId>
     <artifactId>jmeter-pack-listener-extended</artifactId>
-    <version>1.0</version>
+    <version>1.1</version>
     <packaging>jar</packaging>
 
     <name>jmeter-pack-listener-extended</name>

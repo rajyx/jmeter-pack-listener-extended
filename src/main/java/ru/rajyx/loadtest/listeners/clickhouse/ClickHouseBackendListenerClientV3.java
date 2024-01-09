@@ -73,7 +73,6 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
             clickHouseBatchSender.flushBatchPoints(samplersBuffer.getSampleResults());
             samplersBuffer.clearBuffer();
         }
-
         super.teardownTest(context);
     }
 
