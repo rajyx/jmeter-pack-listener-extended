@@ -4,7 +4,7 @@
 
     <groupId>ru.rajyx.loadtest.listeners</groupId>
     <artifactId>jmeter-pack-listener-extended</artifactId>
-    <version>1.0</version>
+    <version>1.1</version>
     <packaging>jar</packaging>
 
     <name>jmeter-pack-listener-extended</name>
@@ -25,9 +25,10 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <jmeter.pack-listener.version>2.07</jmeter.pack-listener.version>
-        <junit.version>4.13.2</junit.version>
+        <junit.version>5.10.1</junit.version>
         <org.apache.jmeter.version>5.1</org.apache.jmeter.version>
         <org.apache.commons>3.7</org.apache.commons>
+        <mockito.version>5.8.0</mockito.version>
     </properties>
 
     <dependencies>
@@ -37,8 +38,14 @@
             <version>${jmeter.pack-listener.version}</version>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
@@ -77,10 +84,27 @@
             <version>${org.apache.commons}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.3</version>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>

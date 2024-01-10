@@ -1,61 +1,101 @@
 package ru.rajyx.loadtest.listeners.clickhouse.samplersbuffer;
 
 import org.apache.jmeter.samplers.SampleResult;
-import org.junit.Before;
-import org.junit.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import ru.rajyx.loadtest.listeners.clickhouse.filter.ISamplersFilter;
 import ru.rajyx.loadtest.listeners.clickhouse.filter.SamplersFilter;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class SamplersBufferTest {
-    private final int DEFAULT_SAMPLRES_QUANTITY = 5;
-    private ISamplersBuffer samplersBuffer;
+    private ISamplersBuffer subSamplersRecordingBuffer;
+    private ISamplersBuffer noSubSamplersRecordingBuffer;
     private ISamplersFilter samplersFilter;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         samplersFilter = new SamplersFilter();
-        samplersBuffer = new SamplersBuffer(samplersFilter, true);
+        samplersFilter.setFilterRegex(".*");
+        subSamplersRecordingBuffer = new SamplersBuffer(samplersFilter, true);
+        noSubSamplersRecordingBuffer = new SamplersBuffer(samplersFilter, false);
     }
 
     @Test
-    public void checkNotMatchedWithRegexSamplersNotExistsInBuffer() {
-        String filterRegex = "\\[HR\\].+";
-        List<SampleResult> inputMatchedSamplers = getSampleResultsInQuantityWithNamePrefix(
-                DEFAULT_SAMPLRES_QUANTITY,
-                "[HR] http request sampler"
-        );
-        List<SampleResult> inputNotMatchedSamplers = getSampleResultsInQuantityWithNamePrefix(
-                DEFAULT_SAMPLRES_QUANTITY,
-                "[TC] transaction controller"
-        );
-        samplersFilter.setFilterRegex(filterRegex);
-        samplersBuffer.addSamplers(inputMatchedSamplers);
-        samplersBuffer.addSamplers(inputNotMatchedSamplers);
-        long matchedSamplersCount = samplersBuffer.getSampleResults()
-                .stream()
-                .filter(sampler -> sampler.getSampleLabel().matches(filterRegex))
-                .count();
+    public void addSamplers_checkAllSubSamplersInBufferWhenRecordSubSamplersFlagEnabled() {
+        int subSamplerLevel = 3;
+        SampleResult sampleResult = prepareSampleResultWithChild(subSamplerLevel);
+        subSamplersRecordingBuffer.addSamplers(List.of(sampleResult));
+        assertEquals(subSamplerLevel, subSamplersRecordingBuffer.getSampleResults().size());
+    }
+
+    @Test
+    public void addSamplers_checkNoSubSamplersInBufferIfRecordFlagDisabled() {
+        int subSamplerLevel = 3;
+        SampleResult sampleResult = prepareSampleResultWithChild(subSamplerLevel);
+        noSubSamplersRecordingBuffer.addSamplers(List.of(sampleResult));
+        assertEquals(1, noSubSamplersRecordingBuffer.getSampleResults().size());
+    }
+
+    @Test
+    public void getSampleResults_checkRecordingSubSamplesBufferReturnsSampleResultsInQuantityWithChildren() {
+        int parentSamplesQuantity = 200;
+        int childSamplesLevel = 2;
+        List<SampleResult> sampleResults = Stream.generate(
+                        () -> prepareSampleResultWithChild(childSamplesLevel)
+                )
+                .limit(parentSamplesQuantity)
+                .collect(Collectors.toList());
+        subSamplersRecordingBuffer.addSamplers(sampleResults);
         assertEquals(
-                "Input matched with regex samplers quantity not equals existed samplers in buffer quantity",
-                DEFAULT_SAMPLRES_QUANTITY,
-                matchedSamplersCount
+                parentSamplesQuantity * childSamplesLevel,
+                subSamplersRecordingBuffer.getSampleResults().size()
         );
     }
 
-    private List<SampleResult> getSampleResultsInQuantityWithNamePrefix(int quantity, String samplerPrefix) {
-        int defaultSampleElapsed = 200;
-        List<SampleResult> sampleResults = new ArrayList<>();
-        for (int i = 0; i < quantity; i++) {
-            SampleResult sampleResult = new SampleResult(System.currentTimeMillis(), defaultSampleElapsed);
-            sampleResult.setSampleLabel(samplerPrefix + i);
-            sampleResult.setSuccessful(true);
-            sampleResults.add(sampleResult);
+    @Test
+    public void getSampleResults_checkNoRecordingSubSamplesBufferReturnsSampleResultsInQuantityWithOutChildren() {
+        int parentSamplesQuantity = 200;
+        int childSamplesLevel = 2;
+        List<SampleResult> sampleResults = Stream.generate(
+                        () -> prepareSampleResultWithChild(childSamplesLevel)
+                )
+                .limit(parentSamplesQuantity)
+                .collect(Collectors.toList());
+        noSubSamplersRecordingBuffer.addSamplers(sampleResults);
+        assertEquals(
+                parentSamplesQuantity,
+                noSubSamplersRecordingBuffer.getSampleResults().size()
+        );
+    }
+
+    @Test
+    public void clearBuffer_checkThereAreNoSamplesAfterClearBufferExecution() {
+        int samplesQuantity = 200;
+        int defaultElapsedTime = 200;
+        subSamplersRecordingBuffer.addSamplers(
+                Stream.generate(
+                                () -> new SampleResult(System.currentTimeMillis(), defaultElapsedTime)
+                        )
+                        .limit(samplesQuantity)
+                        .collect(Collectors.toList())
+        );
+        subSamplersRecordingBuffer.clearBuffer();
+        assertTrue(subSamplersRecordingBuffer.getSampleResults().isEmpty());
+    }
+
+    private SampleResult prepareSampleResultWithChild(int subLevel) {
+        SampleResult sample = new SampleResult(System.currentTimeMillis(), 200);
+        sample.setSampleLabel("sample");
+        if (subLevel > 1) {
+            sample.addSubResult(prepareSampleResultWithChild(subLevel - 1));
         }
-        return sampleResults;
+        return sample;
     }
 }

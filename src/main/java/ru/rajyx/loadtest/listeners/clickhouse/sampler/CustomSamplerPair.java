@@ -1,4 +1,4 @@
-package ru.rajyx.loadtest.listeners.clickhouse.adapter;
+package ru.rajyx.loadtest.listeners.clickhouse.sampler;
 
 import java.util.Objects;
 
