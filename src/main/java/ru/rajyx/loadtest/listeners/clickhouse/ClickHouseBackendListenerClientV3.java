@@ -167,4 +167,32 @@ public class ClickHouseBackendListenerClientV3 extends AbstractBackendListenerCl
     @Override
     public void run() {
     }
+
+    public ClickHouseConfigV3 getClickHouseConfig() {
+        return clickHouseConfig;
+    }
+
+    public IClickHouseBatchSender getClickHouseBatchSender() {
+        return clickHouseBatchSender;
+    }
+
+    public IClickhouseDBAdapter getClickhouseDBAdapter() {
+        return clickhouseDBAdapter;
+    }
+
+    public IDBSetUpper getDbCreator() {
+        return dbCreator;
+    }
+
+    public ISamplersBuffer getSamplersBuffer() {
+        return samplersBuffer;
+    }
+
+    public ScheduledExecutorService getScheduler() {
+        return scheduler;
+    }
+
+    public Logger getLOGGER() {
+        return LOGGER;
+    }
 }
